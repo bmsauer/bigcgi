@@ -6,7 +6,7 @@
 
 pkg
 pkg install -y tcl86
-pkg install -y apache22
+pkg install -y apache24
 
 chmod +x install.tcl
 ./install.tcl
