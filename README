@@ -1,3 +1,8 @@
 This is a repo for bigcgi, containing application and server bootstrap code.
 
 See LICENSE
+
+TODO LIST:
+- SERVER SETUP
+  - ssmtp config
+  - app env set up, run

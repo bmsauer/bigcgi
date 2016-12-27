@@ -1,6 +1,15 @@
-from bottle import route, template, run, request, abort
+import bottle
+from beaker.middleware import SessionMiddleware
+from cork import Cork, AuthException
+from cork.backends import MongoDBBackend
 import requests
 import base64
+
+from settings import app_settings
+
+#----------------------------------------------------
+# MISC
+#----------------------------------------------------
 
 class AccessDeniedException(Exception):
     pass
@@ -21,29 +30,91 @@ def parse_basic_auth(headers):
             raise AccessDeniedException("Basic auth was malformed.")
         except Exception as e:
             raise AccessDeniedException("Unknown error occured parsing basic auth.")
-            
-        
-@route("/")
-def index():
-    return template("index",{})
 
-@route("/app/<appname>",method=["GET","POST"])
-def app(appname):
+app = bottle.Bottle()
+    
+#----------------------------------------------------
+# CORK
+#----------------------------------------------------
+
+cork = Cork(backend=MongoDBBackend(db_name='bigcgi-cork', initialize=False))
+
+session_opts = {
+    'session.cookie_expires': True,
+    'session.encrypt_key': app_settings.SECRET_KEY,
+    'session.httponly': True,
+    'session.timeout': 3600 * 24,  # 1 day
+    'session.type': 'cookie',
+    'session.validate_key': True,
+}
+
+
+def postd():
+    return bottle.request.forms
+
+def post_get(name, default=''):
+    return bottle.request.POST.get(name, default).strip()
+
+@app.post('/login')
+def login():
+    #Authenticate users
+    username = post_get('username')
+    password = post_get('password')
+    cork.login(username, password, success_redirect='/login-success', fail_redirect='/login-failed')
+
+@app.route('/logout')
+def logout():
+    cork.logout(success_redirect='/')
+
+@app.post('/register')
+def register():
+    #Send out registration email
+    cork.register(post_get('username'), post_get('password'), post_get('email_address'))
+    return 'Please check your mailbox.'
+
+        
+#----------------------------------------------------
+# UI
+#---------------------------------------------------- 
+@app.route("/")
+def index():
     try:
-        creds = parse_basic_auth(request.headers)
+        user = cork.current_user
+        name = user.username
+    except AuthException as e:
+        name = "None"
+    return bottle.template("index",{"name":name})
+
+@app.route("/login-success")
+def login_success():
+    return "yay you logged in"
+
+@app.route("/login-failed")
+def login_failed():
+    return "access denied"
+
+#----------------------------------------------------
+# API
+#----------------------------------------------------
+
+@app.route("/<username>/run/<appname>",method=["GET","POST"])
+def bigcgi_run(username,appname):
+    try:
+        creds = parse_basic_auth(bottle.request.headers)
     except AccessDeniedException as e:
-        #abort(401, str(e))
+        #bottle.abort(401, str(e))
         creds = ("brian","brian")
         
     if not authorize(creds):
-        abort(401, "Authorization failed.")
+        bottle.abort(401, "Authorization failed.")
     else:
-        url = "http://localhost/~{}/cgi-bin/{}".format(creds[0], appname)
-        if request.method == "GET":
-            response = requests.get(url, params=dict(request.query))
-        elif request.method == "POST":
-            response = requests.post(url,data=dict(request.forms))
+        url = "http://localhost/~{}/{}".format(creds[0], appname)
+        if bottle.request.method == "GET":
+            response = requests.get(url, params=dict(bottle.request.query))
+        elif bottle.request.method == "POST":
+            response = requests.post(url,data=dict(bottle.request.forms))
         return response.text
         
 if __name__ == "__main__":
-    run(host='localhost', port=8888, debug=True)
+    app = SessionMiddleware(app, session_opts)
+    bottle.run(app=app,host='localhost', port=8888, debug=True, reloader=True)
