@@ -36,8 +36,12 @@ app = bottle.Bottle()
 #----------------------------------------------------
 # CORK
 #----------------------------------------------------
-
-cork = Cork(backend=MongoDBBackend(db_name='bigcgi-cork', initialize=False))
+smtp_url = 'ssl://{}:{}@smtp.gmail.com:465'.format(app_settings.SMTP_USERNAME, app_settings.SMTP_PASSWORD)
+cork = Cork(
+    backend=MongoDBBackend(db_name='bigcgi-cork', initialize=False),
+    email_sender="brianmsauer@gmail.com",
+    smtp_url=smtp_url,
+)
 
 session_opts = {
     'session.cookie_expires': True,
@@ -71,6 +75,13 @@ def register():
     #Send out registration email
     cork.register(post_get('username'), post_get('password'), post_get('email_address'))
     return 'Please check your mailbox.'
+
+@app.route('/validate_registration/:registration_code')
+def validate_registration(registration_code):
+    """Validate registration, create user account"""
+    cork.validate_registration(registration_code)
+    return 'Thanks. <a href="/">Go to login</a>'
+
 
         
 #----------------------------------------------------
