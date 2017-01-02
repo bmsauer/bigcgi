@@ -4,5 +4,6 @@ See LICENSE
 
 TODO LIST:
 - SERVER SETUP
-  - ssmtp config
-  - app env set up, run
+  - smtp config
+  - bigcgi user creation, add to sudoers for scripts, change scripts to 700 root:root
+  - app virtualenv set up, run

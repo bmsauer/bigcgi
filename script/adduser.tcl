@@ -1,3 +1,5 @@
+#!/usr/bin/env tclsh8.6
+
 #adds a user from command line arguments.
 #this script should be run as sudo
 
