@@ -1,0 +1,11 @@
+<ul>
+  <li>Item 1</li>
+  <li>Item 2</li>
+</ul>
+
+%if current_user == None:
+<a class="button" href="login">Login</a>
+%else:
+<p>Hello {{current_user}}.</p>
+<a class="button" href="logout">Logout</a>
+%end

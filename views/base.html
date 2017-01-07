@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs -->
+  <meta charset="utf-8" />
+  <title>bigCGI</title>
+  <meta name="Serverless computing with CGI" content="" />
+  <meta name="bmsauer" content="" />
+
+  <!-- Mobile Specific Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Font -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/css?family=Armata" rel="stylesheet" /> 
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="static/css/normalize.css" />
+  <link rel="stylesheet" href="static/css/skeleton.css" />
+  <link rel="stylesheet" href="static/css/custom.css" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="static/img/favicon.png" />
+
+</head>
+<body>
+
+  <!-- Primary Page Layout -->
+  <div class="container">
+    <div class="row">
+      <div class="12 columns header">
+	%include("header.html")
+      </div>
+    </div>
+    <div class="row">
+      <div class="three columns sidebar">
+	%include("sidebar.html", current_user=get("current_user",None))
+      </div>
+      <div class="nine columns content">
+	%if get("flash",None):
+	<div class="flash"><p>{{flash}}</p></div>
+	%end
+	%if get("error",None):
+	<div class="error"><p>{{error}}</p></div>
+	%end
+	<h2>{{get("title","")}}</h2>
+	{{!base}}
+      </div>
+    </div>
+  </div>
+
+<!-- End Document -->
+</body>
+</html>

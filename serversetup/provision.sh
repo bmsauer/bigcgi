@@ -5,6 +5,7 @@
 #installs packages, kicks off tcl script to handle config
 
 pkg
+pkg install -y sudo
 pkg install -y tcl86
 pkg install -y python35
 pkg install -y apache24

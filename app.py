@@ -4,6 +4,7 @@ from cork import Cork, AuthException
 from cork.backends import MongoDBBackend
 import requests
 import base64
+import os
 
 from settings import app_settings
 
@@ -64,45 +65,61 @@ def login():
     #Authenticate users
     username = post_get('username')
     password = post_get('password')
-    cork.login(username, password, success_redirect='/login-success', fail_redirect='/login-failed')
+    cork.login(username, password, success_redirect='/?flash=Hello {}.'.format(username), fail_redirect='/?error=Login failure.')
 
 @app.route('/logout')
 def logout():
-    cork.logout(success_redirect='/')
+    cork.logout(success_redirect='/?flash=Logout success.')
 
 @app.post('/register')
 def register():
     #Send out registration email
-    cork.register(post_get('username'), post_get('password'), post_get('email_address'))
-    return 'Please check your mailbox.'
+    username = post_get('username')
+    password = post_get('password')
+    email_addr = post_get('email_address')
+    cork.register(username, password, email_addr)
+
+    status = os.system("sudo script/adduser.tcl " + username)
+    if status != 0:
+        bottle.abort(500, "Failed to add user")
+    bottle.redirect("/?flash=Confirmation email sent.")
+    #return 'Please check your mailbox.'
 
 @app.route('/validate_registration/:registration_code')
 def validate_registration(registration_code):
     """Validate registration, create user account"""
     cork.validate_registration(registration_code)
-    return 'Thanks. <a href="/">Go to login</a>'
+    bottle.redirect("/?flash=Thank you for registering.")
+    #return 'Thanks. <a href="/">Go to login</a>'
 
-
+#----------------------------------------------------
+# STATIC FILES
+#----------------------------------------------------
+@app.route('/static/<filepath:path>')
+def server_static(filepath):
+    return bottle.static_file(filepath, root='static/')
         
 #----------------------------------------------------
 # UI
 #---------------------------------------------------- 
 @app.route("/")
 def index():
+    flash = bottle.request.query.flash or None
+    error = bottle.request.query.error or None
     try:
         user = cork.current_user
-        name = user.username
+        current_user = user.username
     except AuthException as e:
-        name = "None"
-    return bottle.template("index",{"name":name})
+        current_user = None
+    return bottle.template("index",{"current_user":current_user, "flash":flash, "error":error})
 
-@app.route("/login-success")
-def login_success():
-    return "yay you logged in"
+@app.get("/login")
+def login_view():
+    return bottle.template("login", {"title":"Login"})
 
-@app.route("/login-failed")
-def login_failed():
-    return "access denied"
+@app.get("/register")
+def register_view():
+    return bottle.template("register", {"title":"Register"})
 
 #----------------------------------------------------
 # API

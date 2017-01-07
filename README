@@ -4,6 +4,7 @@ See LICENSE
 
 TODO LIST:
 - SERVER SETUP
-  - smtp config
+  - smtp config for cork
+  - enable suexec (default should be fine)
   - bigcgi user creation, add to sudoers for scripts, change scripts to 700 root:root
   - app virtualenv set up, run

@@ -6,9 +6,9 @@
 set username [lindex $argv 0]
 
 if {$tcl_platform(os) == "FreeBSD"} {
-    set command [list pw useradd $username -d /nonexistent -s /usr/sbin/nologin]
+    set command [list pw useradd $username -d /home/$username -m -s /usr/sbin/nologin]
 } elseif {$tcl_platform(os) == "Linux"} {
-    set command [list useradd -M -s /bin/false $username]
+    set command [list useradd -d /home/$username -m -s /bin/false $username]
 }  else {
     puts "Could not detect os."
     exit 1

@@ -1,29 +1,3 @@
-<html>
+%rebase("base.html", current_user=current_user)
 
-  <body>
-    <h1>bigcgi</h1>
-    
-    Login
-    <form action="login" method="POST">
-      Username:
-      <input type="text" name="username" />
-      Password:
-      <input type="password" name="password" />
-      <input type="submit" />
-    </form>
-    Register
-    <form action="register" method="POST">
-      Username:
-      <input type="text" name="username" />
-      Password:
-      <input type="password" name="password" />
-      Email:
-      <input type="text" name="email_address" />
-      <input type="submit" />
-    </form>
-    <p>Current user is {{name}}</p>
-    <a href="/logout">Logout</a>
-    
-  </body>
-
-</html>
+<p>main page content.</p>
