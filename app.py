@@ -5,9 +5,10 @@ from cork.backends import MongoDBBackend
 import requests
 import base64
 import os
+import tempfile
 
 from settings import app_settings
-
+from db import AppDBOMongo
 #----------------------------------------------------
 # MISC
 #----------------------------------------------------
@@ -113,6 +114,55 @@ def index():
         current_user = None
     return bottle.template("index",{"current_user":current_user, "flash":flash, "error":error})
 
+@app.route("/dashboard")
+def dashboard():
+    cork.require(fail_redirect='/?error=You are not authorized to access this page.')
+    flash = bottle.request.query.flash or None
+    error = bottle.request.query.error or None
+    user = cork.current_user
+    current_user = user.username
+    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "flash":flash, "error":error})
+
+@app.get("/create-app")
+def create_app_view():
+    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    flash = bottle.request.query.flash or None
+    error = bottle.request.query.error or None
+    user = cork.current_user
+    current_user = user.username
+
+    return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error})
+
+@app.post("/create-app")
+def create_app():
+    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    user = cork.current_user
+    current_user = user.username
+
+    name = bottle.request.forms.get('name')
+    upload = bottle.request.files.get('upload')
+    
+    with tempfile.NamedTemporaryFile() as temp_storage:
+        final_path = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user),upload.filename)
+        print("final_path: ",final_path)
+        save_path = temp_storage.name
+        print("save_path: ",save_path)
+        upload.save(save_path, overwrite=True) # appends upload.filename automatically
+        print("successful save")
+        print("command is ","sudo script/moveprog.tcl {} {} {}".format(current_user, save_path, final_path))
+        status = os.system("sudo script/moveprog.tcl {} {} {}".format(current_user, save_path, final_path))
+        print("move file status", status)
+        
+    error=None
+    flash="Successfully created app."
+    db = AppDBOMongo()
+    db.create(name, upload.filename, current_user)
+    if error:
+        bottle.redirect("/dashboard?error={}".format(error))
+    if flash:
+        bottle.redirect("/dashboard?flash={}".format(flash))
+    
+    
 @app.get("/login")
 def login_view():
     return bottle.template("login", {"title":"Login"})
