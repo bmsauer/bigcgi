@@ -33,10 +33,10 @@
       </div>
     </div>
     <div class="row">
-      <div class="three columns sidebar">
+      <div class="three columns sidebar alpha">
 	%include("sidebar.html", current_user=get("current_user",None))
       </div>
-      <div class="nine columns content">
+      <div class="nine columns content omega">
 	%if get("flash",None):
 	<div class="flash"><p>{{flash}}</p></div>
 	%end

@@ -2,6 +2,24 @@
 
 %if not get("apps",None):
 <p>You have no apps!</p>
+%else:
+%for app in apps:
+<div class="row app-row">
+  <div class="two-thirds column alpha">
+    <div class="app-container">
+    <h3>{{app["name"]}}</h3>
+    <strong>Hits: {{app["hits"]}}</strong>
+    </div>
+  </div>
+  <div class="one-third column omega">
+    <div class="action-container">
+      <a href="#"><img src="static/img/trash-4x.png" alt="Delete" title="Delete"/></a>
+      <a href="#"><img src="static/img/reload-4x.png" alt="Re-Upload" title="Re-Upload"/></a>
+    </div>
+  </div>
+</div>
 %end
 
-<a class="button button-primary" href="create-app">Create App</a>
+%end
+
+<a class="button button-primary" href="create-app"><img src="static/img/cloud-upload-3x.png" alt = "Upload"/>Create App</a>

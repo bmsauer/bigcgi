@@ -121,7 +121,9 @@ def dashboard():
     error = bottle.request.query.error or None
     user = cork.current_user
     current_user = user.username
-    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "flash":flash, "error":error})
+    db = AppDBOMongo()
+    apps = db.get_all(current_user)
+    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error})
 
 @app.get("/create-app")
 def create_app_view():
@@ -143,20 +145,15 @@ def create_app():
     upload = bottle.request.files.get('upload')
     
     with tempfile.NamedTemporaryFile() as temp_storage:
-        final_path = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user),upload.filename)
-        print("final_path: ",final_path)
+        final_path = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user),name)
         save_path = temp_storage.name
-        print("save_path: ",save_path)
         upload.save(save_path, overwrite=True) # appends upload.filename automatically
-        print("successful save")
-        print("command is ","sudo script/moveprog.tcl {} {} {}".format(current_user, save_path, final_path))
         status = os.system("sudo script/moveprog.tcl {} {} {}".format(current_user, save_path, final_path))
-        print("move file status", status)
         
     error=None
     flash="Successfully created app."
     db = AppDBOMongo()
-    db.create(name, upload.filename, current_user)
+    db.create(name, current_user)
     if error:
         bottle.redirect("/dashboard?error={}".format(error))
     if flash:
@@ -177,21 +174,22 @@ def register_view():
 
 @app.route("/<username>/run/<appname>",method=["GET","POST"])
 def bigcgi_run(username,appname):
-    try:
-        creds = parse_basic_auth(bottle.request.headers)
-    except AccessDeniedException as e:
-        #bottle.abort(401, str(e))
-        creds = ("brian","brian")
+    #try:
+    #    creds = parse_basic_auth(bottle.request.headers)
+    #except AccessDeniedException as e:
+    #    bottle.abort(401, str(e))
         
-    if not authorize(creds):
-        bottle.abort(401, "Authorization failed.")
-    else:
-        url = "http://localhost/~{}/{}".format(creds[0], appname)
-        if bottle.request.method == "GET":
-            response = requests.get(url, params=dict(bottle.request.query))
-        elif bottle.request.method == "POST":
-            response = requests.post(url,data=dict(bottle.request.forms))
-        return response.text
+    #if not authorize(creds):
+    #    bottle.abort(401, "Authorization failed.")
+    #else:
+    url = "http://localhost/~{}/{}".format(username, appname)
+    if bottle.request.method == "GET":
+        response = requests.get(url, params=dict(bottle.request.query))
+    elif bottle.request.method == "POST":
+        response = requests.post(url,data=dict(bottle.request.forms))
+    db = AppDBOMongo()
+    db.inc_hits(username, appname)
+    return response.text
         
 if __name__ == "__main__":
     app = SessionMiddleware(app, session_opts)

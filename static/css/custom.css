@@ -1,3 +1,6 @@
+/*---------------------------------------------------
+  BASIC
+---------------------------------------------------*/
 .logo h1{
     font-family: 'Armata', sans-serif;
 }
@@ -37,3 +40,35 @@ div.error{
     background-color:crimson;
     font-weight:bold;
 }
+
+span.armata{
+    font-family: 'Armata', sans-serif;
+}
+span.darkorchid{
+    color:darkorchid;
+}
+	   
+/*---------------------------------------------------
+  DASHBOARD
+---------------------------------------------------*/
+div.app-row{
+    background-color:darkorchid;
+    margin-bottom:5px;
+    border-radius: 4px;
+    color:#FFF;
+}
+div.app-container{
+    padding:5%;
+}
+div.action-container{
+    padding:5%;
+    float:right;
+    background-color:mediumpurple;
+    display:inline-block;
+    border-radius: 4px;
+}
+.button img{
+    vertical-align:middle;
+    margin-right: 5%;
+}
+    
