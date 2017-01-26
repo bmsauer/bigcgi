@@ -135,15 +135,15 @@ def create_app_view():
 
     return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error})
 
-@app.get("/reupload-app/<appname>")
-def reupload_app_view(appname):
+@app.get("/upgrade-app/<appname>")
+def upgrade_app_view(appname):
     cork.require(fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
     user = cork.current_user
     current_user = user.username
 
-    return bottle.template("reupload-app",{"title":"Re-Upload App","current_user":current_user, "flash":flash, "error":error, "appname":appname})
+    return bottle.template("upgrade-app",{"title":"Upgrade App","current_user":current_user, "flash":flash, "error":error, "appname":appname})
 
 @app.get("/delete-app/<appname>")
 def delete_app_view(appname):
