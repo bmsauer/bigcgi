@@ -27,12 +27,24 @@ class AppDBOMongo(MongoDatabaseConnection):
                 "name":appname
             },
             {
-                "$set": {"stats":{"hits":0}}
+                "$set": {"stats":{"hits":0, "total_millisecs":0}}
             }, upsert=True)
         else:
-            inserted = self.db.apps.insert_one({"username":username, "name":appname, "stats":{"hits":0}})
+            inserted = self.db.apps.insert_one({"username":username, "name":appname, "stats":{"hits":0, "total_millisecs":0}})
             app_id = inserted.inserted_id
-            self.db.users.update_one({"username":username}, {"$push":{"apps":{appname: app_id}}}, upsert=True)
+            self.db.users.update_one({"username":username}, {"$push":{"apps":appname}}, upsert=True)
+
+    def delete(self, appname, username):
+        """
+        AppDBOMongo.delete() - deletes a record for an app
+        Params:
+        - appname (string) : the name of the app, which will be the name of the file
+        - username (string) : the name of the user this app is for
+        Returns:
+        - Nothing
+        """
+        self.db.apps.delete_one({"username":username, "name":appname})
+        self.db.users.update_one({"username":username}, {"$pull":{"apps": appname}})
 
     def get_all(self, username):
         """
@@ -45,7 +57,7 @@ class AppDBOMongo(MongoDatabaseConnection):
         apps = self.db.apps.find({"username":username})
         return_apps = []
         for app in apps:
-            return_apps.append({"name":app["name"], "hits":app["stats"]["hits"]})
+            return_apps.append({"name":app["name"], "hits":app["stats"]["hits"], "total_millisecs":app["stats"]["total_millisecs"]})
         return return_apps
 
     def inc_hits(self, username, appname):
@@ -64,6 +76,26 @@ class AppDBOMongo(MongoDatabaseConnection):
             {
                 "$inc": {"stats.hits":1}
             }, upsert=True)
+
+    def inc_millisecs(self, username, appname, mills):
+        """
+        AppDBOMongo.add_avg() - adds to the total millisecs per request
+        Params:
+        Params:
+        - username (string) : the name of the user
+        - appname (string) : the app to increment
+        - mills (int) : the number of millisecs to add
+        Returns:
+        - Nothing
+        """
+        self.db.apps.update_one({
+                "username":username,
+                "name":appname
+            },
+            {
+                "$inc": {"stats.total_millisecs":mills}
+            }, upsert=True)
+        
         
         
             

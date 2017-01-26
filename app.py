@@ -135,6 +135,40 @@ def create_app_view():
 
     return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error})
 
+@app.get("/reupload-app/<appname>")
+def reupload_app_view(appname):
+    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    flash = bottle.request.query.flash or None
+    error = bottle.request.query.error or None
+    user = cork.current_user
+    current_user = user.username
+
+    return bottle.template("reupload-app",{"title":"Re-Upload App","current_user":current_user, "flash":flash, "error":error, "appname":appname})
+
+@app.get("/delete-app/<appname>")
+def delete_app_view(appname):
+    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    flash = bottle.request.query.flash or None
+    error = bottle.request.query.error or None
+    user = cork.current_user
+    current_user = user.username
+
+    return bottle.template("delete-app",{"title":"Delete App", "current_user":current_user, "flash":flash, "error":error, "appname":appname})
+
+@app.post("/delete-app/<appname>")
+def delete_app(appname):
+    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    user = cork.current_user
+    current_user = user.username
+
+    app_location = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user), appname)
+    print(app_location)
+    db = AppDBOMongo()
+    db.delete(appname, current_user)
+    os.system("sudo script/delprog.tcl {}".format(app_location))
+
+    bottle.redirect("/dashboard?flash={}".format("Successful delete."))
+
 @app.post("/create-app")
 def create_app():
     cork.require(fail_redirect="/?error=You are not authorized to access this page.")
@@ -189,6 +223,7 @@ def bigcgi_run(username,appname):
         response = requests.post(url,data=dict(bottle.request.forms))
     db = AppDBOMongo()
     db.inc_hits(username, appname)
+    db.inc_millisecs(username, appname, response.elapsed.total_seconds()/1000)
     return response.text
         
 if __name__ == "__main__":

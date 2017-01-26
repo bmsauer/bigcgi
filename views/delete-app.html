@@ -1,0 +1,7 @@
+%rebase("base.html")
+<form action="/delete-app/{{get('appname','')}}" method="POST">
+  <p>This will completely delete {{get('appname','')}}, is that ok?</p>
+  <input type="submit" value="Yes, delete." />
+</form>
+<a href="/dashboard">No thanks, take me to the dashboard.</a>
+

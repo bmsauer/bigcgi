@@ -1,0 +1,8 @@
+%rebase("base.html")
+<form action="/create-app" method="POST" enctype="multipart/form-data">
+  <label for="name">Name:</label><br/>
+  <p>{{get('appname','')}}</p>
+  <input type="hidden" name="name" value="{{get('appname','')}}" />
+  <input type="file" name="upload" /><br/>
+  <input type="submit" value="Re-Upload" />
+</form>

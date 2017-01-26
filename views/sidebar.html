@@ -5,9 +5,9 @@
 </ul>
 <hr/>
 %if current_user == None:
-<a class="button" href="login">Login</a>
+<a class="button" href="/login">Login</a>
 %else:
 <p>Hello {{current_user}}.</p>
-<a class="button button-primary" href="dashboard">Dashboard</a>
-<a class="button" href="logout">Logout</a>
+<a class="button button-primary" href="/dashboard">Dashboard</a>
+<a class="button" href="/logout">Logout</a>
 %end
