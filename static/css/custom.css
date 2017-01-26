@@ -1,6 +1,13 @@
 /*---------------------------------------------------
   BASIC
 ---------------------------------------------------*/
+
+hr{
+    border-top: 1px solid #777;
+}
+html,body{
+    background-image:url("/static/img/brickwall.png");
+}
 .logo h1{
     font-family: 'Armata', sans-serif;
 }
@@ -10,13 +17,13 @@
 }
 
 div.sidebar{
-    border-right:1px solid #E1E1E1;
+    border-right:1px solid #777;
     padding:10px;
     min-height:100%;
 }
 
 div.header{
-    border-bottom:1px solid #E1E1E1; 
+    border-bottom:1px solid #777;
 }
 
 div.content{
