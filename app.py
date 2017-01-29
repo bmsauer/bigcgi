@@ -40,7 +40,10 @@ app = bottle.Bottle()
 #----------------------------------------------------
 smtp_url = 'ssl://{}:{}@smtp.gmail.com:465'.format(app_settings.SMTP_USERNAME, app_settings.SMTP_PASSWORD)
 cork = Cork(
-    backend=MongoDBBackend(db_name='bigcgi-cork', initialize=False),
+    backend=MongoDBBackend(db_name='bigcgi-cork',
+                           username=app_settings.DATABASE_USERNAME,
+                           password=app_settings.DATABASE_PASSWORD,
+                           initialize=False),
     email_sender="brianmsauer@gmail.com",
     smtp_url=smtp_url,
 )
@@ -123,6 +126,7 @@ def dashboard():
     current_user = user.username
     db = AppDBOMongo()
     apps = db.get_all(current_user)
+    db.close()
     return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error})
 
 @app.get("/create-app")
@@ -162,9 +166,9 @@ def delete_app(appname):
     current_user = user.username
 
     app_location = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user), appname)
-    print(app_location)
     db = AppDBOMongo()
     db.delete(appname, current_user)
+    db.close()
     os.system("sudo script/delprog.tcl {}".format(app_location))
 
     bottle.redirect("/dashboard?flash={}".format("Successful delete."))
@@ -188,6 +192,7 @@ def create_app():
     flash="Successfully created app."
     db = AppDBOMongo()
     db.create(name, current_user)
+    db.close()
     if error:
         bottle.redirect("/dashboard?error={}".format(error))
     if flash:
@@ -224,6 +229,7 @@ def bigcgi_run(username,appname):
     db = AppDBOMongo()
     db.inc_hits(username, appname)
     db.inc_millisecs(username, appname, response.elapsed.total_seconds()/1000)
+    db.close()
     return response.text
         
 if __name__ == "__main__":

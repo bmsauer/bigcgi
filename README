@@ -4,6 +4,8 @@ See LICENSE
 
 TODO LIST:
 - SERVER SETUP
+  - service startup (/etc/rc.conf)
+  - mongodb config, auth/users
   - smtp config for cork
   - enable suexec (default should be fine)
   - bigcgi user creation, add to sudoers for scripts, change scripts to 700 root:root
@@ -12,3 +14,5 @@ TODO LIST:
   - XSS prevention
   - sanitize inputs
   - disallow . in app names
+  - DB users
+- UNIT TESTS

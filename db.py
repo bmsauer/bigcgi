@@ -10,6 +10,10 @@ class AppDBOMongo(MongoDatabaseConnection):
     def __init__(self):
         super().__init__()
         self.db = self.client["bigcgi-main"]
+        self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+
+    def close(self):
+        self.client.close()
 
     def create(self, appname, username):
         """

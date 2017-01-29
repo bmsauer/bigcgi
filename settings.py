@@ -6,7 +6,9 @@ class AppSettings(object):
     SMTP_USERNAME = os.environ["BIGCGI_SMTP_USERNAME"]
     SMTP_PASSWORD = os.environ["BIGCGI_SMTP_PASSWORD"]
 
-    DATABASE_URI = "mongodb://localhost:27017/"
+    DATABASE_USERNAME = os.environ["BIGCGI_DATABASE_USERNAME"]
+    DATABASE_PASSWORD = os.environ["BIGCGI_DATABASE_PASSWORD"]
+    DATABASE_URI = "mongodb://localhost:27017"
     
     CGI_BASE_PATH_TEMPLATE = "/home/{}/public_html"
     

@@ -11,6 +11,11 @@ puts "Restarting server..."
 exec service apache24 restart
 
 #---------------------------
+# mongodb config
+#---------------------------
+
+
+#---------------------------
 # app config
 #---------------------------
 cd ..
