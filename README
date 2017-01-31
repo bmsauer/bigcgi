@@ -10,9 +10,4 @@ TODO LIST:
   - enable suexec (default should be fine)
   - bigcgi user creation, add to sudoers for scripts, change scripts to 700 root:root
   - app virtualenv set up, run
-- SECURITY
-  - XSS prevention
-  - sanitize inputs
-  - disallow . in app names
-  - DB users
 - UNIT TESTS

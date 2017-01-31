@@ -6,6 +6,7 @@ import requests
 import base64
 import os
 import tempfile
+import uuid
 
 from settings import app_settings
 from db import AppDBOMongo
@@ -33,7 +34,28 @@ def parse_basic_auth(headers):
         except Exception as e:
             raise AccessDeniedException("Unknown error occured parsing basic auth.")
 
+def generate_csrf_token():
+    return str(uuid.uuid4())
+
+def get_csrf_token():
+    session = bottle.request.environ.get('beaker.session')
+    return session['csrf']
+        
+def require_csrf(callback):
+    def wrapper(*args, **kwargs):
+        session = bottle.request.environ.get('beaker.session')
+        if bottle.request.method == 'POST':
+            csrf = bottle.request.forms.get('csrf')
+            if not csrf or csrf != session.get('csrf'):
+                bottle.abort(400, "Failed csrf validation.")
+        session['csrf'] = generate_csrf_token()
+        session.save()
+        body = callback(*args, **kwargs)
+        return body
+    return wrapper
+
 app = bottle.Bottle()
+app.install(require_csrf)
     
 #----------------------------------------------------
 # CORK
@@ -137,7 +159,7 @@ def create_app_view():
     user = cork.current_user
     current_user = user.username
 
-    return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error})
+    return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
 @app.get("/upgrade-app/<appname>")
 def upgrade_app_view(appname):
@@ -147,7 +169,7 @@ def upgrade_app_view(appname):
     user = cork.current_user
     current_user = user.username
 
-    return bottle.template("upgrade-app",{"title":"Upgrade App","current_user":current_user, "flash":flash, "error":error, "appname":appname})
+    return bottle.template("upgrade-app",{"title":"Upgrade App","current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
 @app.get("/delete-app/<appname>")
 def delete_app_view(appname):
@@ -157,7 +179,7 @@ def delete_app_view(appname):
     user = cork.current_user
     current_user = user.username
 
-    return bottle.template("delete-app",{"title":"Delete App", "current_user":current_user, "flash":flash, "error":error, "appname":appname})
+    return bottle.template("delete-app",{"title":"Delete App", "current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
 @app.post("/delete-app/<appname>")
 def delete_app(appname):
@@ -180,6 +202,7 @@ def create_app():
     current_user = user.username
 
     name = bottle.request.forms.get('name')
+    name = "".join(c for c in name if c.isalnum())
     upload = bottle.request.files.get('upload')
     
     with tempfile.NamedTemporaryFile() as temp_storage:
@@ -201,7 +224,7 @@ def create_app():
     
 @app.get("/login")
 def login_view():
-    return bottle.template("login", {"title":"Login"})
+    return bottle.template("login", {"title":"Login", "csrf":get_csrf_token()})
 
 @app.get("/register")
 def register_view():
