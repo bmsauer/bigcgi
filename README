@@ -11,9 +11,17 @@ TODO LIST:
   - bigcgi user creation, add to sudoers for scripts, change scripts to 700 root:root
   - app virtualenv set up, run
 - UNIT TESTS
-
+- ADMIN PANEL
+- OTHER CONSIDERATIONS
+  - logging, shipping, visualizing (logstash + mongodb)
+  - backup server
+- ATTACHMENTS
+- SECURITY
+  - http_proxy vulnerability https://httpoxy.org/
+  
 MANUAL INSTALL INSTRUCTIONS
   - INSTALL DEPENDENCIES
     - create bigcgi user with adduser
     - install packages sudo, tcl86, python35, apache24, mongodb
     - edit /etc/rc.conf to auto start mongo and apache
+    
