@@ -13,7 +13,9 @@ exec service apache24 restart
 #---------------------------
 # mongodb config
 #---------------------------
-
+exec python3.5 toolrunner.py setup_auth_db run
+file copy -force bigcgi_mongodb.conf /usr/local/etc/mongodb.conf
+exec service mongod restart
 
 #---------------------------
 # app config

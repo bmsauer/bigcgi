@@ -24,4 +24,5 @@ MANUAL INSTALL INSTRUCTIONS
     - create bigcgi user with adduser
     - install packages sudo, tcl86, python35, apache24, mongodb
     - edit /etc/rc.conf to auto start mongo and apache
+    - create an env.sh file and source to shell
     
