@@ -26,15 +26,17 @@ def run():
     #database users and roles
     client = pymongo.MongoClient(app_settings.DATABASE_URI)
     db = client["admin"]
-    db.add_user('useradmin', app_settings.DATABASE_USERADMIN_PASSWORD, roles:[{"role":"userAdminAnyDatabase","db": "admin"}])
+    db.add_user('useradmin', 
+		app_settings.DATABASE_USERADMIN_PASSWORD, 
+		roles=[{"role":"userAdminAnyDatabase","db": "admin"}])
     db = client["bigcgi-main"]
     db.add_user(app_settings.DATABASE_USERNAME,
                 app_settings.DATABASE_PASSWORD,
-                roles:[{"role":"readWrite", "db": "bigcgi-main"}])
+                roles=[{"role":"readWrite", "db": "bigcgi-main"}])
     db = client["bigcgi-cork"]
     db.add_user(app_settings.DATABASE_USERNAME,
                 app_settings.DATABASE_PASSWORD,
-                roles:[{"role":"readWrite", "db": "bigcgi-cork"}])
+                roles=[{"role":"readWrite", "db": "bigcgi-cork"}])
     
 if __name__=="__main__":
     print("Please run this file with toolrunner.py.")
