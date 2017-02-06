@@ -254,7 +254,7 @@ def bigcgi_run(username,appname):
     db.inc_millisecs(username, appname, response.elapsed.total_seconds()/1000)
     db.close()
     return response.text
-        
+    
+app = SessionMiddleware(app, session_opts)    
 if __name__ == "__main__":
-    app = SessionMiddleware(app, session_opts)
-    bottle.run(app=app,host='localhost', port=8888, debug=True, reloader=True)
+    bottle.run(app=app,host='0.0.0.0', port=8888, debug=True, reloader=True)

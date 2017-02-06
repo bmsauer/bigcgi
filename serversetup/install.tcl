@@ -19,17 +19,17 @@ safe_append "/etc/rc.conf" {mongod_enable="yes"}
 #---------------------------
 # edit sudoers / setup scripts
 #---------------------------
-safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /usr/home/bigcgi/bigcgi-repo/script/adduser.tcl}
-safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /usr/home/bigcgi/bigcgi-repo/script/moveprog.tcl}
-safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /usr/home/bigcgi/bigcgi-repo/script/delprog.tcl}
+safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/adduser.tcl}
+safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/moveprog.tcl}
+safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/delprog.tcl}
 
-exec {chmod 700 /usr/home/bigcgi/bigcgi-repo/script/adduser.tcl}
-exec {chmod 700 /usr/home/bigcgi/bigcgi-repo/script/moveprog.tcl}
-exec {chmod 700 /usr/home/bigcgi/bigcgi-repo/script/delprog.tcl}
+exec chmod 700 /home/bigcgi/bigcgi-repo/script/adduser.tcl
+exec chmod 700 /home/bigcgi/bigcgi-repo/script/moveprog.tcl
+exec chmod 700 /home/bigcgi/bigcgi-repo/script/delprog.tcl
 
-exec {chown root:root /usr/home/bigcgi/bigcgi-repo/script/adduser.tcl}
-exec {chown root:root /usr/home/bigcgi/bigcgi-repo/script/moveprog.tcl}
-exec {chown root:root /usr/home/bigcgi/bigcgi-repo/script/delprog.tcl}
+exec chown root:wheel /home/bigcgi/bigcgi-repo/script/adduser.tcl
+exec chown root:wheel /home/bigcgi/bigcgi-repo/script/moveprog.tcl
+exec chown root:wheel /home/bigcgi/bigcgi-repo/script/delprog.tcl
 
 #---------------------------
 #  apache config
@@ -39,20 +39,18 @@ exec {chown root:root /usr/home/bigcgi/bigcgi-repo/script/delprog.tcl}
 puts "Copying bigcgi_apache.conf to /usr/local/etc/apache24/Includes"
 file copy -force bigcgi_apache.conf /usr/local/etc/apache24/Includes/bigcgi_apache.conf
 puts "Restarting server..."
-exec service apache24 restart
+if { [catch  { exec service apache24 restart } msg ] } {
+  puts "Output from apache restart: $::errorInfo"
+}
 
 #---------------------------
 # mongodb config
 #---------------------------
-exec python3.5 toolrunner.py setup_auth_db run
+puts "Initializing auth db..."
+exec python3.5 ../toolrunner.py setup_auth_db run ;# do this first, while auth is off
+puts "Moving mongodb config..."
 file copy -force bigcgi_mongodb.conf /usr/local/etc/mongodb.conf
+puts "Restarting mongod..."
 exec service mongod restart
-
-#---------------------------
-# app config
-#---------------------------
-cd ..
-exec python3.5 -m ensurepip
-exec pip3 install virtualenv
-exec virtualenv -p /usr/local/bin/python3.5 env
+}
 
