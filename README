@@ -4,12 +4,8 @@ See LICENSE
 
 TODO LIST:
 - SERVER SETUP
-  - service startup (/etc/rc.conf)
-  - mongodb config, auth/users
-  - smtp config for cork
+  - smtp config for cork (off google mail)
   - enable suexec (default should be fine)
-  - bigcgi user creation, add to sudoers for scripts, change scripts to 700 root:root
-  - app virtualenv set up, run
 - UNIT TESTS
 - ADMIN PANEL
 - OTHER CONSIDERATIONS
