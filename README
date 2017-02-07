@@ -23,6 +23,11 @@ MANUAL INSTALL INSTRUCTIONS
   - INSTALL DEPENDENCIES
     - create bigcgi user with adduser
     - install packages sudo, tcl86, python35, apache24, mongodb
-    - edit /etc/rc.conf to auto start mongo and apache
     - create an env.sh file and source to shell
-    
+    - make sure mongod started with auth off, apache24 started
+    - cd to serversetup, run sudo -E ./install.tcl
+  - RUN THE APP
+    - virtualenv -p $(which python3.5) env
+    - source env/bin/activate
+    - pip3 install -r requirements.txt
+    - gunicorn -b 0.0.0.0:8888 -w 4 app:app
