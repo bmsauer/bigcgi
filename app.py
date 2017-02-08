@@ -103,13 +103,12 @@ def register():
     username = post_get('username')
     password = post_get('password')
     email_addr = post_get('email_address')
-    cork.register(username, password, email_addr)
 
     status = os.system("sudo script/adduser.tcl " + username)
     if status != 0:
         bottle.abort(500, "Failed to add user")
+    cork.register(username, password, email_addr)
     bottle.redirect("/?flash=Confirmation email sent.")
-    #return 'Please check your mailbox.'
 
 @app.route('/validate_registration/:registration_code')
 def validate_registration(registration_code):
@@ -228,7 +227,7 @@ def login_view():
 
 @app.get("/register")
 def register_view():
-    return bottle.template("register", {"title":"Register"})
+    return bottle.template("register", {"title":"Register", "csrf":get_csrf_token()})
 
 #----------------------------------------------------
 # API

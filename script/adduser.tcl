@@ -18,5 +18,17 @@ if { [catch { exec {*}$command } msg] } {
     puts "Error creating user: $msg"
     exit 2
 }
+if { [catch { exec mkdir /home/$username/public_html } msg ] } {
+    puts "Error adding home directory: $msg"
+    exit 2
+}
+if { [catch { exec chown $username:$username /home/$username/public_html } msg ] } {
+    puts "Error changing home dir owner: $msg"
+    exit 2
+}
+if { [catch { exec chmod -R 711 /home/$username } msg ] } {
+    puts "Error changing home dir permissions: $msg"
+    exit 2
+}
 
 exit 0
