@@ -11,6 +11,12 @@ proc safe_append {filename line} {
 }
 
 #---------------------------
+# modify DNS
+#---------------------------
+safe_append "/etc/hosts" {127.0.0.1		internal.bigcgi.com}
+safe_append "/etc/hosts" {::1			internal.bigcgi.com}
+
+#---------------------------
 # setup rc.conf
 #---------------------------
 safe_append "/etc/rc.conf" {apache24_enable="yes"}
@@ -52,5 +58,4 @@ puts "Moving mongodb config..."
 file copy -force bigcgi_mongodb.conf /usr/local/etc/mongodb.conf
 puts "Restarting mongod..."
 exec service mongod restart
-}
 
