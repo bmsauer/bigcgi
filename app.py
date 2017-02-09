@@ -243,7 +243,7 @@ def bigcgi_run(username,appname):
     #if not authorize(creds):
     #    bottle.abort(401, "Authorization failed.")
     #else:
-    url = "http://localhost/~{}/{}".format(username, appname)
+    url = "http://internal.bigcgi.com/~{}/{}".format(username, appname)
     if bottle.request.method == "GET":
         response = requests.get(url, params=dict(bottle.request.query))
     elif bottle.request.method == "POST":

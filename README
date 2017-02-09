@@ -5,7 +5,6 @@ See LICENSE
 TODO LIST:
 - SERVER SETUP
   - smtp config for cork (off google mail)
-  - enable suexec (default should be fine)
 - UNIT TESTS
 - ADMIN PANEL
 - OTHER CONSIDERATIONS
@@ -14,7 +13,8 @@ TODO LIST:
 - ATTACHMENTS
 - SECURITY
   - http_proxy vulnerability https://httpoxy.org/
-  
+  - https connections
+
 MANUAL INSTALL INSTRUCTIONS
   - INSTALL DEPENDENCIES
     - create bigcgi user with adduser
