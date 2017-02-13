@@ -38,10 +38,10 @@
       </div>
       <div class="nine columns content omega">
 	%if get("flash",None):
-	<div class="flash"><p>{{flash}}</p></div>
+	<div class="flash"><p>{{flash}} <a href="?">clear</a></p></div>
 	%end
 	%if get("error",None):
-	<div class="error"><p>{{error}}</p></div>
+	<div class="error"><p>{{error}} <a href="?">clear</a></p></div>
 	%end
 	<h2>{{get("title","")}}</h2>
 	{{!base}}

@@ -26,14 +26,17 @@ safe_append "/etc/rc.conf" {mongod_enable="yes"}
 # edit sudoers / setup scripts
 #---------------------------
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/adduser.tcl}
+safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/deluser.tcl}
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/moveprog.tcl}
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/delprog.tcl}
 
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/adduser.tcl
+exec chmod 700 /home/bigcgi/bigcgi-repo/script/deluser.tcl
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/moveprog.tcl
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/delprog.tcl
 
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/adduser.tcl
+exec chown root:wheel /home/bigcgi/bigcgi-repo/script/deluser.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/moveprog.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/delprog.tcl
 
