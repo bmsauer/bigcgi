@@ -3,14 +3,12 @@ This is a repo for bigcgi, containing application and server bootstrap code.
 See LICENSE
 
 TODO LIST:
-- UI ERROR REPORTING CLEANUP
 - SERVER SETUP
   - smtp config for cork (off google mail)
 - UNIT TESTS
 - OTHER CONSIDERATIONS
   - logging, shipping, visualizing (log4mongo)
   - backup server
-- ATTACHMENTS
 - SECURITY
   - http_proxy vulnerability https://httpoxy.org/
   - https connections

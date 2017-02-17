@@ -56,6 +56,17 @@ def require_csrf(callback):
 
 app = bottle.Bottle()
 app.install(require_csrf)
+
+#----------------------------------------------------
+# ERROR PAGES
+#----------------------------------------------------
+
+@app.error(500)
+@app.error(404)
+@app.error(403)
+@app.error(400)
+def error(error):
+    return bottle.template("error", {"title":error.status, "message":error.body})
     
 #----------------------------------------------------
 # CORK
