@@ -37,6 +37,9 @@ def run():
     db.add_user(app_settings.DATABASE_USERNAME,
                 app_settings.DATABASE_PASSWORD,
                 roles=[{"role":"readWrite", "db": "bigcgi-cork"}])
-    
+    db = client["bigcgi-logs"]
+    db.add_user(app_settings.DATABASE_USERNAME,
+                app_settings.DATABASE_PASSWORD,
+                roles=[{"role":"readWrite", "db": "bigcgi-logs"}])
 if __name__=="__main__":
     print("Please run this file with toolrunner.py.")

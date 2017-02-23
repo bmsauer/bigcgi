@@ -188,6 +188,8 @@ def server_static(filepath):
 #---------------------------------------------------- 
 @app.route("/")
 def index():
+    app_settings.logger.info("testing the logging", extra={"actor":"system","action":"notice", "object":"index"})
+    app_settings.logger.info("testing the logging without extra")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
     try:
