@@ -66,6 +66,18 @@ app.install(require_csrf)
 @app.error(403)
 @app.error(400)
 def error(error):
+    try:
+        user = cork.current_user
+        actor = user.username
+    except AuthException:
+        actor = "anonymous"
+    obj = str(bottle.request.path) + "?" + str(bottle.request.query_string) 
+    app_settings.logger.error("{} - {}".format(error.status, error.body),
+                              extra={
+                                  "actor":actor,
+                                  "action":"errored",
+                                  "object":obj
+                              })
     return bottle.template("error", {"title":error.status, "message":error.body})
     
 #----------------------------------------------------
@@ -188,8 +200,6 @@ def server_static(filepath):
 #---------------------------------------------------- 
 @app.route("/")
 def index():
-    app_settings.logger.info("testing the logging", extra={"actor":"system","action":"notice", "object":"index"})
-    app_settings.logger.info("testing the logging without extra")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
     try:

@@ -3,8 +3,6 @@ This is a repo for bigcgi, containing application and server bootstrap code.
 See LICENSE
 
 TODO LIST:
-- FAQ/DOCS page, development page
-  - devel: roadmap, contact, link to github?
 - SERVER SETUP
   - smtp config for cork (off google mail)
 - UNIT TESTS
