@@ -286,6 +286,14 @@ def create_app():
 def login_view():
     return bottle.template("login", {"title":"Login", "csrf":get_csrf_token()})
 
+@app.get("/docs")
+def docs_view():
+    return bottle.template("docs", {"title":"Documentation"})
+
+@app.get("/development")
+def development_view():
+    return bottle.template("development", {"title":"Development"})
+
 @app.get("/register")
 def register_view():
     return bottle.template("register", {"title":"Register", "csrf":get_csrf_token()})

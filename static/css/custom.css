@@ -54,6 +54,9 @@ span.armata{
 span.darkorchid{
     color:darkorchid;
 }
+dt{
+    font-weight:bold;
+}
 /*---------------------------------------------------
   HOME
 ---------------------------------------------------*/

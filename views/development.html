@@ -1,0 +1,19 @@
+%rebase("base.html")
+<h3>Roadmap</h3>
+<p>Below is a list of proposed features, in no particular order of priority.</p>
+<dl>
+  <dt>Scheduling</dt>
+  <dd>This would allow CGI applications to be run on a timed schedule, allowing for custom parameters for each time.</dd>
+  <dt>Fast-CGI Integration</dt>
+  <dd>This would allow for long-standing processes to serve fast CGI requests.  Would require functionality to start, stop, and restart applications.</dd>
+  <dt>Versioning</dt>
+  <dd>This feature creates built in versioning of apps.  Basically, the applications would be stored in the database to allow fast rollback and the ability to run multiple versions of the same application.</dd>
+  <dt>Logging and Monitoring</dt>
+  <dd>This would allow apps to write logs that are viewable in the UI.</dd>
+  <dt>Application Authentication</dt>
+  <dd>With this feature, applications would require a username and password or API key to be accessed.</dd>
+  <dt>API Control</dt>
+  <dd>This enables developers to add, remove, update, and query applications via a RESTful API.</dd>
+  <dt>Attachments / File IO</dt>
+  <dd>With this feature, applications could read and write to files on the system.  This is challenging due to the distributed nature of bigCGI.</dd>
+</dl>
