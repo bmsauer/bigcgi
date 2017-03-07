@@ -10,6 +10,8 @@ import uuid
 
 from settings import app_settings
 from db import AppDBOMongo
+
+app_settings.get_logger()
 #----------------------------------------------------
 # MISC
 #----------------------------------------------------

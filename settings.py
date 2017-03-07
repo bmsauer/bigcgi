@@ -17,14 +17,18 @@ class AppSettings(object):
     CGI_BASE_PATH_TEMPLATE = "/home/{}/public_html"
 
     def __init__(self):
-        format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        logging.basicConfig(format=format)
-        formatter = logging.Formatter(format)
-        self.logger = logging.getLogger()
-        filehandler = RotatingFileHandler("bigcgi.log", maxBytes=50000, backupCount=2)
-        filehandler.setFormatter(formatter)
-        self.logger.addHandler(filehandler)
-        handler = BufferedMongoHandler(host='localhost',
+        self.logger = None
+
+    def get_logger(self):
+        if self.logger == None:
+            format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            logging.basicConfig(format=format)
+            formatter = logging.Formatter(format)
+            self.logger = logging.getLogger()
+            filehandler = RotatingFileHandler("bigcgi.log", maxBytes=50000, backupCount=2)
+            filehandler.setFormatter(formatter)
+            self.logger.addHandler(filehandler)
+            handler = BufferedMongoHandler(host='localhost',
                                        capped=True,
                                        database_name="bigcgi-logs",
                                        username=AppSettings.DATABASE_USERNAME,
@@ -34,7 +38,8 @@ class AppSettings(object):
                                        buffer_periodical_flush_timing=10.0,
                                        buffer_early_flush_level=logging.CRITICAL)
 
-        self.logger.addHandler(handler)
-        self.logger.setLevel("INFO")
-    
+            self.logger.addHandler(handler)
+            self.logger.setLevel("INFO")
+        return self.logger
+
 app_settings = AppSettings()
