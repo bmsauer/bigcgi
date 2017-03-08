@@ -68,10 +68,10 @@ div.feature h3{
   DASHBOARD
 ---------------------------------------------------*/
 div.app-row{
-    background-color:darkorchid;
+    background-color:#FCFCFC;
     margin-bottom:5px;
     border-radius: 4px;
-    color:#FFF;
+    border:1px solid darkorchid;
 }
 div.app-container{
     padding:5%;
@@ -79,7 +79,7 @@ div.app-container{
 div.action-container{
     padding:5%;
     float:right;
-    background-color:mediumpurple;
+    /*background-color:darkorchid;*/
     display:inline-block;
     border-radius: 4px;
 }

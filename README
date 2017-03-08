@@ -3,8 +3,6 @@ This is a repo for bigcgi, containing application and server bootstrap code.
 See LICENSE
 
 TODO LIST:
-- SERVER SETUP
-  - smtp config for cork (off google mail)
 - UNIT TESTS
 - OTHER CONSIDERATIONS
   - backup server
@@ -15,12 +13,13 @@ TODO LIST:
 MANUAL INSTALL INSTRUCTIONS
   - INSTALL DEPENDENCIES
     - create bigcgi user with adduser
-    - install packages sudo, tcl86, python35, apache24, mongodb
+    - install packages git, bash, sudo, tcl86, python35, apache24, mongodb
+      - for apache24, it must be compiled with suexec
+    - clone the repo
     - create an env.sh file and source to shell
-    - make sure mongod started with auth off, apache24 started
-    - cd to serversetup, run sudo -E ./install.tcl
-  - RUN THE APP
-    - virtualenv -p $(which python3.5) env
+    - virtualenv -p $(which python3.5) env 
     - source env/bin/activate
     - pip3 install -r requirements.txt
+    - make sure mongod started with auth off, apache24 started
+    - cd to serversetup, run sudo -E ./install.tcl
     - gunicorn -b 0.0.0.0:8888 -w 4 app:app

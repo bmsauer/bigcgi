@@ -142,6 +142,34 @@ def validate_registration(registration_code):
     bottle.redirect("/?flash=Thank you for registering.")
     #return 'Thanks. <a href="/">Go to login</a>'
 
+@app.post("/reset-password")
+def reset_password():
+    """Send out password reset email"""
+    cork.send_password_reset_email(
+        username=post_get('username'),
+    )
+    bottle.redirect("/?flash=Password reset sent.")
+
+@app.get("/reset-password")
+def reset_password_view():
+    try:
+        user = cork.current_user
+        current_user = user.username
+    except AuthException as e:
+        current_user = None
+    return bottle.template("reset_password",{"title":"Reset Password","current_user":current_user, "csrf":get_csrf_token()})
+
+@app.get("/change-password/<reset_code>")
+def change_password_view(reset_code):
+    return bottle.template("change_password",{"title":"Change Password","current_user":None, "csrf":get_csrf_token(), "reset_code":reset_code})
+
+@app.post("/change-password")
+def change_password():
+    cork.reset_password(post_get('reset_code'), post_get('password'))
+    bottle.redirect("/?flash=Password successfully reset.")
+    
+    
+
 @app.route('/admin')
 def admin():
     """Only admin users can see this"""
@@ -331,7 +359,7 @@ def bigcgi_run(username,appname):
         response = requests.post(url,data=dict(bottle.request.forms))
     db = AppDBOMongo()
     db.inc_hits(username, appname)
-    db.inc_millisecs(username, appname, response.elapsed.total_seconds()/1000)
+    db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
     db.close()
     return response.text
     
