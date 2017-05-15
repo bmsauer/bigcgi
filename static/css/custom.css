@@ -6,7 +6,7 @@ hr{
     border-top: 1px solid #777;
 }
 html,body{
-    background-image:url("/static/img/brickwall.png");
+    background-image:url("/static/img/paper_fibers.png");
 }
 .logo h1{
     font-family: 'Armata', sans-serif;

@@ -4,7 +4,7 @@ from settings import app_settings
 
 class MongoDatabaseConnection(object):
     def __init__(self):
-        self.client = pymongo.MongoClient(app_settings.DATABASE_URI)
+        self.client = pymongo.MongoClient(app_settings.DATABASE_URI, w=0)
 
 class AppDBOMongo(MongoDatabaseConnection):
     def __init__(self):

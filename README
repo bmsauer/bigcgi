@@ -6,8 +6,8 @@ TODO LIST:
 - UNIT TESTS
 - OTHER CONSIDERATIONS
   - backup server
+  - fleet management (jails + ansible?)
 - SECURITY
-  - http_proxy vulnerability https://httpoxy.org/
   - https connections
 
 MANUAL INSTALL INSTRUCTIONS
