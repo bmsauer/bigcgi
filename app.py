@@ -1,7 +1,6 @@
 import bottle
 from beaker.middleware import SessionMiddleware
-from cork import Cork, AuthException
-from cork.backends import MongoDBBackend
+from cork import AuthException
 import requests
 import base64
 import os
@@ -10,51 +9,11 @@ import uuid
 
 from settings import app_settings
 from db import AppDBOMongo
+from util.request import *
+from apps.admin import admin_app
+from apps.cork import cork_app, cork
 
 app_settings.get_logger()
-#----------------------------------------------------
-# MISC
-#----------------------------------------------------
-
-class AccessDeniedException(Exception):
-    pass
-
-def authorize(creds):
-    return True
-
-def parse_basic_auth(headers):
-    if not "Authorization" in headers:
-        raise AccessDeniedException("No Authorization header.")
-    else:
-        try:
-            plain = request.headers["Authorization"][6:] #strip off Basic_
-            bytes_creds= base64.b64decode(plain)
-            creds = tuple(bytes_creds.decode().split(":"))
-            return creds
-        except IndexError as e:
-            raise AccessDeniedException("Basic auth was malformed.")
-        except Exception as e:
-            raise AccessDeniedException("Unknown error occured parsing basic auth.")
-
-def generate_csrf_token():
-    return str(uuid.uuid4())
-
-def get_csrf_token():
-    session = bottle.request.environ.get('beaker.session')
-    return session['csrf']
-        
-def require_csrf(callback):
-    def wrapper(*args, **kwargs):
-        session = bottle.request.environ.get('beaker.session')
-        if bottle.request.method == 'POST':
-            csrf = bottle.request.forms.get('csrf')
-            if not csrf or csrf != session.get('csrf'):
-                bottle.abort(400, "Failed csrf validation.")
-        session['csrf'] = generate_csrf_token()
-        session.save()
-        body = callback(*args, **kwargs)
-        return body
-    return wrapper
 
 app = bottle.Bottle()
 app.install(require_csrf)
@@ -81,142 +40,6 @@ def error(error):
                                   "object":obj
                               })
     return bottle.template("error", {"title":error.status, "message":error.body})
-    
-#----------------------------------------------------
-# CORK
-#----------------------------------------------------
-smtp_url = 'ssl://{}:{}@smtp.gmail.com:465'.format(app_settings.SMTP_USERNAME, app_settings.SMTP_PASSWORD)
-cork = Cork(
-    backend=MongoDBBackend(db_name='bigcgi-cork',
-                           username=app_settings.DATABASE_USERNAME,
-                           password=app_settings.DATABASE_PASSWORD,
-                           initialize=False),
-    email_sender="brianmsauer@gmail.com",
-    smtp_url=smtp_url,
-)
-
-session_opts = {
-    'session.cookie_expires': True,
-    'session.encrypt_key': app_settings.SECRET_KEY,
-    'session.httponly': True,
-    'session.timeout': 3600 * 24,  # 1 day
-    'session.type': 'cookie',
-    'session.validate_key': True,
-}
-
-
-def postd():
-    return bottle.request.forms
-
-def post_get(name, default=''):
-    return bottle.request.POST.get(name, default).strip()
-
-@app.post('/login')
-def login():
-    #Authenticate users
-    username = post_get('username')
-    password = post_get('password')
-    cork.login(username, password, success_redirect='/?flash=Hello {}.'.format(username), fail_redirect='/?error=Login failure.')
-
-@app.route('/logout')
-def logout():
-    cork.logout(success_redirect='/?flash=Logout success.')
-
-@app.post('/register')
-def register():
-    #Send out registration email
-    username = post_get('username')
-    password = post_get('password')
-    email_addr = post_get('email_address')
-
-    status = os.system("sudo script/adduser.tcl " + username)
-    if status != 0:
-        bottle.abort(500, "Failed to add user")
-    cork.register(username, password, email_addr)
-    bottle.redirect("/?flash=Confirmation email sent.")
-
-@app.route('/validate_registration/:registration_code')
-def validate_registration(registration_code):
-    """Validate registration, create user account"""
-    cork.validate_registration(registration_code)
-    bottle.redirect("/?flash=Thank you for registering.")
-    #return 'Thanks. <a href="/">Go to login</a>'
-
-@app.post("/reset-password")
-def reset_password():
-    """Send out password reset email"""
-    cork.send_password_reset_email(
-        username=post_get('username'),
-    )
-    bottle.redirect("/?flash=Password reset sent.")
-
-@app.get("/reset-password")
-def reset_password_view():
-    try:
-        user = cork.current_user
-        current_user = user.username
-    except AuthException as e:
-        current_user = None
-    return bottle.template("reset_password",{"title":"Reset Password","current_user":current_user, "csrf":get_csrf_token()})
-
-@app.get("/change-password/<reset_code>")
-def change_password_view(reset_code):
-    return bottle.template("change_password",{"title":"Change Password","current_user":None, "csrf":get_csrf_token(), "reset_code":reset_code})
-
-@app.post("/change-password")
-def change_password():
-    cork.reset_password(post_get('reset_code'), post_get('password'))
-    bottle.redirect("/?flash=Password successfully reset.")
-    
-    
-
-@app.route('/admin')
-def admin():
-    """Only admin users can see this"""
-    cork.require(role='admin', fail_redirect='/?error=Not authorized.')
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    #pregenerate selectbox html (bottle templates don't support nesting fors)
-    select_html = ""
-    for r in cork.list_roles():
-        select_html += "<option value='{}'>{}</option>".format(r[0],r[0])
-    return bottle.template("admin_page",{
-        "current_user":cork.current_user,
-        "users":cork.list_users(),
-        "roles":cork.list_roles(),
-        "select_html":select_html,
-        "csrf":get_csrf_token(),
-        "flash":flash,
-        "error":error
-    })
-
-@app.post("/admin/delete-user")
-def admin_delete_user():
-    cork.require(role='admin', fail_redirect="/?error=Not authorized.")
-    username = post_get('username')
-    try:
-        cork.delete_user(username)
-        status = os.system("sudo script/deluser.tcl " + username)
-        if status != 0:
-            raise Exception("OS script raised nonzero status. Check logs.")
-    except Exception as e:
-        bottle.redirect("/admin?error=Failed to delete user: " + str(e))
-    bottle.redirect("/admin?flash=Deleted user.")
-
-@app.post("/admin/modify-user-role")
-def admin_modify_user_role():
-    cork.require(role="admin", fail_redirect="/?error=Not authorized.")
-    username = post_get("username")
-    role = post_get("role")
-    try:
-        cork._store.users._coll.find_one_and_update(
-            {"login":username},
-            {"$set": {"role":role}}
-        )
-    except Exception as e:
-        bottle.redirect("/admin?error=Failed to modify user role: " + str(e))
-    bottle.redirect("/admin?flash=Modified user role.")
-        
         
 #----------------------------------------------------
 # STATIC FILES
@@ -362,7 +185,19 @@ def bigcgi_run(username,appname):
     db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
     db.close()
     return response.text
-    
-app = SessionMiddleware(app, session_opts)    
+
+app.mount("/admin/", admin_app)
+app.merge(cork_app)
+session_opts = {
+    'session.cookie_expires': True,
+    'session.encrypt_key': app_settings.SECRET_KEY,
+    'session.httponly': True,
+    'session.timeout': 3600 * 24,  # 1 day
+    'session.type': 'cookie',
+    'session.validate_key': True,
+}
+app = SessionMiddleware(app, session_opts)
+
+
 if __name__ == "__main__":
     bottle.run(app=app,host='0.0.0.0', port=8888, debug=True, reloader=True)

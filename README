@@ -7,7 +7,6 @@ TODO LIST:
 - OTHER CONSIDERATIONS
   - backup server
   - fleet management (jails + ansible?)
-  - refactor app.py into multiple files, split views into subfolders
   - watchdog process
 - SECURITY
   - https connections
