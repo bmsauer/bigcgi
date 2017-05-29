@@ -2,6 +2,26 @@ import pymongo
 
 from settings import app_settings
 
+"""
+bigcgi-main.users
+{
+username: "username",
+apps: ["appname",]
+stats: {
+  monthly_hits: 0,
+}
+
+bigcgi-main.apps
+{
+username: "username",
+appname: "appname",
+stats: {
+  hits: 0,
+  total_millisecs: 0,
+}
+}
+"""
+
 class MongoDatabaseConnection(object):
     def __init__(self):
         self.client = pymongo.MongoClient(app_settings.DATABASE_URI, w=0)
@@ -74,12 +94,18 @@ class AppDBOMongo(MongoDatabaseConnection):
         - Nothing
         """
         self.db.apps.update_one({
-                "username":username,
-                "name":appname
-            },
-            {
-                "$inc": {"stats.hits":1}
-            }, upsert=True)
+            "username":username,
+            "name":appname
+        },
+        {
+            "$inc": {"stats.hits":1}
+        }, upsert=True)
+        self.db.users.update_one({
+            "username":username,
+        },
+        {
+            "$inc": {"stats.monthly_hits":1}
+        }, upsert=True)
 
     def inc_millisecs(self, username, appname, mills):
         """

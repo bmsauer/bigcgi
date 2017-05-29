@@ -8,7 +8,7 @@ import tempfile
 import uuid
 
 from settings import app_settings
-from db import AppDBOMongo
+from db.mongodbo import AppDBOMongo
 from util.request import *
 from apps.admin import admin_app
 from apps.cork import cork_app, cork
@@ -81,7 +81,6 @@ def create_app_view():
     error = bottle.request.query.error or None
     user = cork.current_user
     current_user = user.username
-
     return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
 @app.get("/upgrade-app/<appname>")
@@ -91,7 +90,7 @@ def upgrade_app_view(appname):
     error = bottle.request.query.error or None
     user = cork.current_user
     current_user = user.username
-
+    
     return bottle.template("upgrade-app",{"title":"Upgrade App","current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
 @app.get("/delete-app/<appname>")
@@ -115,7 +114,7 @@ def delete_app(appname):
     db.delete(appname, current_user)
     db.close()
     os.system("sudo script/delprog.tcl {}".format(app_location))
-
+    app_settings.logger.info("app deleted", extra={"actor":current_user,"action":"deleted app", "object":appname})
     bottle.redirect("/dashboard?flash={}".format("Successful delete."))
 
 @app.post("/create-app")
@@ -142,6 +141,7 @@ def create_app():
     if error:
         bottle.redirect("/dashboard?error={}".format(error))
     if flash:
+        app_settings.logger.info("app created", extra={"actor":current_user,"action":"created app", "object":name})
         bottle.redirect("/dashboard?flash={}".format(flash))
     
     
@@ -160,6 +160,14 @@ def development_view():
 @app.get("/register")
 def register_view():
     return bottle.template("register", {"title":"Register", "csrf":get_csrf_token()})
+
+@app.get("/pricing")
+def pricing_view():
+    return bottle.template("pricing", {"title":"Pricing"})
+
+@app.get("/pricing")
+def pricing_view():
+    return bottle.template("pricing", {"title":"Pricing"})
 
 #----------------------------------------------------
 # API

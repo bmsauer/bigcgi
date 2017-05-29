@@ -1,8 +1,10 @@
 import bottle
-from cork import Cork, AuthException
+from cork import Cork, AuthException, AAAException
 from cork.backends import MongoDBBackend
 from util.request import *
 from settings import app_settings
+
+app_settings.get_logger()
 
 cork_app = bottle.Bottle()
 cork_app.install(require_csrf)
@@ -39,6 +41,7 @@ def register():
     if status != 0:
         bottle.abort(500, "Failed to add user")
     cork.register(username, password, email_addr)
+    app_settings.logger.info("new user registered", {"actor":username,"action":"registered", "object":"bigcgi"})
     bottle.redirect("/?flash=Confirmation email sent.")
 
 @cork_app.route('/validate_registration/:registration_code')
@@ -51,19 +54,25 @@ def validate_registration(registration_code):
 @cork_app.post("/reset-password")
 def reset_password():
     """Send out password reset email"""
-    cork.send_password_reset_email(
-        username=post_get('username'),
-    )
-    bottle.redirect("/?flash=Password reset sent.")
+    try:
+        cork.send_password_reset_email(
+            username=post_get('username'),
+        )
+        bottle.redirect("/?flash=Password reset sent.")
+    except AAAException as e:
+        bottle.redirect("/reset-password?error={}".format(str(e)))
+    
 
 @cork_app.get("/reset-password")
 def reset_password_view():
+    flash = bottle.request.query.flash or None
+    error = bottle.request.query.error or None
     try:
         user = cork.current_user
         current_user = user.username
     except AuthException as e:
         current_user = None
-    return bottle.template("cork/reset_password",{"title":"Reset Password","current_user":current_user, "csrf":get_csrf_token()})
+    return bottle.template("cork/reset_password",{"title":"Reset Password","current_user":current_user, "csrf":get_csrf_token(), "flash":flash, "error":error })
 
 @cork_app.get("/change-password/<reset_code>")
 def change_password_view(reset_code):
