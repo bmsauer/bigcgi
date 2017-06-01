@@ -1,4 +1,5 @@
 import pymongo
+import datetime
 
 from settings import app_settings
 
@@ -10,7 +11,7 @@ apps: ["appname",]
 stats: {
   monthly_hits: 0,
 }
-
+}
 bigcgi-main.apps
 {
 username: "username",
@@ -20,12 +21,39 @@ stats: {
   total_millisecs: 0,
 }
 }
+
 """
 
 class MongoDatabaseConnection(object):
     def __init__(self):
         self.client = pymongo.MongoClient(app_settings.DATABASE_URI, w=0)
 
+class ReportingDBOMongo(MongoDatabaseConnection):
+    def __init__(self):
+        super().__init__()
+        self.maindb = self.client["bigcgi-main"]
+        self.maindb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+        self.reportingdb = self.client["bigcgi-reporting"]
+        self.reportingdb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+
+    def create_monthly_hits_report(self):
+        #get all users and their monthly hits
+        users = self.maindb.users.find({})
+        hits = {}
+        for u in users:
+            hits[u["username"]] = u["stats"]["monthly_hits"]
+        #reset user's monthly hits
+        self.maindb.users.update_many({},
+            {
+                "$set": {"stats.monthly_hits":0}
+            }, upsert=True)
+        #insert into reporting database
+        self.reportingdb.monthly_hit_reports.insert_one({
+            "date":datetime.datetime.utcnow(),
+            "hits":hits})
+        
+            
+        
 class AppDBOMongo(MongoDatabaseConnection):
     def __init__(self):
         super().__init__()

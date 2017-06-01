@@ -8,14 +8,16 @@ import importlib
 
 parser = argparse.ArgumentParser(description='Tool Runner for bigCGI')
 parser.add_argument('command', type=str, help='The command to run.')
-parser.add_argument("subcommand", type=str, help="The sub command to run.", nargs='?', default="run")
+parser.add_argument("subcommand", type=str, help="The subcommand to run.")
+parser.add_argument("arguments", type=str, help="Additional arguments for subcommand", nargs="*")
 
 args = parser.parse_args()
 command = args.command
 subcommand = args.subcommand
+arguments = args.arguments
 
 imp = "tools.{}".format(command,subcommand)
 module = importlib.import_module(imp)
 
 func = getattr(module, subcommand)
-func()
+func(*arguments)

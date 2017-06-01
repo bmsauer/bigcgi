@@ -192,7 +192,7 @@ def bigcgi_run(username,appname):
     db.inc_hits(username, appname)
     db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
     db.close()
-    return response.text
+    return bottle.HTTPResponse(status=response.status_code, body=response.text)
 
 app.mount("/admin/", admin_app)
 app.merge(cork_app)

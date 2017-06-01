@@ -14,7 +14,7 @@ TODO LIST:
 MANUAL INSTALL INSTRUCTIONS
   - INSTALL DEPENDENCIES
     - create bigcgi user with adduser
-    - install packages git, bash, sudo, tcl86, python35, apache24, mongodb
+    - install packages git, bash, sudo, tcl86, python35, apache24, mongodb, rabbitmq
       - for apache24, it must be compiled with suexec
     - clone the repo
     - create an env.sh file and source to shell

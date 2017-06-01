@@ -41,5 +41,19 @@ def run():
     db.add_user(app_settings.DATABASE_USERNAME,
                 app_settings.DATABASE_PASSWORD,
                 roles=[{"role":"readWrite", "db": "bigcgi-logs"}])
+    db = client["bigcgi-reporting"]
+    db.add_user(app_settings.DATABASE_USERNAME,
+                app_settings.DATABASE_PASSWORD,
+                roles=[{"role":"readWrite", "db": "bigcgi-reporting"}])
+
+def create_databases_with_auth(*args):
+    new_db_name = args[0]
+    client = pymongo.MongoClient(app_settings.DATABASE_URI)
+    db = client[new_db_name]
+    db.authenticate("useradmin", app_settings.DATABASE_USERADMIN_PASSWORD, "admin")
+    db.add_user(app_settings.DATABASE_USERNAME,
+                app_settings.DATABASE_PASSWORD,
+                roles=[{"role":"readWrite", "db":new_db_name}])
+
 if __name__=="__main__":
     print("Please run this file with toolrunner.py.")
