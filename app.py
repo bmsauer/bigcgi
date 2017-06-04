@@ -64,7 +64,7 @@ def index():
 
 @app.route("/dashboard")
 def dashboard():
-    cork.require(fail_redirect='/?error=You are not authorized to access this page.')
+    cork.require(role="user", fail_redirect='/?error=You are not authorized to access this page.')
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
     user = cork.current_user
@@ -76,7 +76,7 @@ def dashboard():
 
 @app.get("/create-app")
 def create_app_view():
-    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
     user = cork.current_user
@@ -85,7 +85,7 @@ def create_app_view():
 
 @app.get("/upgrade-app/<appname>")
 def upgrade_app_view(appname):
-    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
     user = cork.current_user
@@ -95,7 +95,7 @@ def upgrade_app_view(appname):
 
 @app.get("/delete-app/<appname>")
 def delete_app_view(appname):
-    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
     user = cork.current_user
@@ -105,7 +105,7 @@ def delete_app_view(appname):
 
 @app.post("/delete-app/<appname>")
 def delete_app(appname):
-    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     user = cork.current_user
     current_user = user.username
 
@@ -119,7 +119,7 @@ def delete_app(appname):
 
 @app.post("/create-app")
 def create_app():
-    cork.require(fail_redirect="/?error=You are not authorized to access this page.")
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     user = cork.current_user
     current_user = user.username
 

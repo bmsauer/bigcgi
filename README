@@ -16,11 +16,11 @@ MANUAL INSTALL INSTRUCTIONS
     - create bigcgi user with adduser
     - install packages git, bash, sudo, tcl86, python35, apache24, mongodb, rabbitmq
       - for apache24, it must be compiled with suexec
-    - clone the repo
+    - clone the repo into /home/bigcgi/bigcgi-repo
     - create an env.sh file and source to shell
     - virtualenv -p $(which python3.5) env 
     - source env/bin/activate
     - pip3 install -r requirements.txt
-    - make sure mongod started with auth off, apache24 started
+    - make sure mongod started with auth off, apache24 started, rabbitmq started
     - cd to serversetup, run sudo -E ./install.tcl
     - gunicorn -b 0.0.0.0:8888 -w 4 app:app

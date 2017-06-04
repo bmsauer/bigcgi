@@ -2,4 +2,6 @@ env/*
 env.sh
 __pycache__
 *.pyc
-*.log*
+logs/*.log*
+*.pid
+celerybeat-schedule

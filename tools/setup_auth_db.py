@@ -6,7 +6,7 @@ from settings import app_settings
 
 #sets up an admin user in the database.
 
-def run():
+def run(*args):
     #cork (app auth)
     mb = MongoDBBackend(db_name='bigcgi-cork', initialize=True)
     cork = Cork(backend=mb)
@@ -54,6 +54,14 @@ def create_databases_with_auth(*args):
     db.add_user(app_settings.DATABASE_USERNAME,
                 app_settings.DATABASE_PASSWORD,
                 roles=[{"role":"readWrite", "db":new_db_name}])
+
+def create_role(*args):
+    new_role_name = args[0]
+    new_role_level = args[1]
+    mb = MongoDBBackend(db_name='bigcgi-cork', initialize=True, username=app_settings.DATABASE_USERNAME, password=app_settings.DATABASE_PASSWORD)
+    mb.roles._coll.insert({'role': new_role_name, 'val': new_role_level})
+    
+    
 
 if __name__=="__main__":
     print("Please run this file with toolrunner.py.")

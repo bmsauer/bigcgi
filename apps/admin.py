@@ -18,8 +18,8 @@ def admin():
         select_html += "<option value='{}'>{}</option>".format(r[0],r[0])
     return bottle.template("admin/admin_page",{
         "current_user":cork.current_user,
-        "users":cork.list_users(),
-        "roles":cork.list_roles(),
+        "users":sorted(cork.list_users()),
+        "roles":reversed(sorted(cork.list_roles(), key=lambda x:int(x[1]))),
         "select_html":select_html,
         "csrf":get_csrf_token(),
         "flash":flash,
