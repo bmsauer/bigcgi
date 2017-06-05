@@ -6,10 +6,8 @@ TODO LIST:
 - UNIT TESTS
 - OTHER CONSIDERATIONS
   - backup server
-  - fleet management (jails + ansible?)
+  - fleet management (jails + ansible + supervisor?)
   - watchdog process
-- SECURITY
-  - https connections
 
 MANUAL INSTALL INSTRUCTIONS
   - INSTALL DEPENDENCIES
