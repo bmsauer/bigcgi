@@ -124,6 +124,8 @@ def create_app():
     current_user = user.username
 
     name = bottle.request.forms.get('name')
+    if not name:
+        bottle.redirect("/dashboard?error={}".format("App must have a name."))
     name = "".join(c for c in name if c.isalnum())
     upload = bottle.request.files.get('upload')
     

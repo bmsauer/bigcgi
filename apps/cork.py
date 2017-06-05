@@ -3,6 +3,7 @@ from cork import Cork, AuthException, AAAException
 from cork.backends import MongoDBBackend
 from util.request import *
 from settings import app_settings
+import os
 
 app_settings.get_logger()
 

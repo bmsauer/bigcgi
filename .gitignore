@@ -4,4 +4,4 @@ __pycache__
 *.pyc
 logs/*.log*
 *.pid
-celerybeat-schedule
+celerybeat-schedule*
