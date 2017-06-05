@@ -41,6 +41,12 @@ exec chown root:wheel /home/bigcgi/bigcgi-repo/script/moveprog.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/delprog.tcl
 
 #---------------------------
+#  make log dir
+#---------------------------
+exec mkdir ../logs
+exec chown bigcgi:bigcgi ../logs
+
+#---------------------------
 #  apache config
 #---------------------------
 #puts "Adding /usr/local/bigcgi if not exist..."

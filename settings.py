@@ -25,7 +25,7 @@ class AppSettings(object):
             logging.basicConfig(format=format)
             formatter = logging.Formatter(format)
             self.logger = logging.getLogger()
-            filehandler = RotatingFileHandler("bigcgi.log", maxBytes=50000, backupCount=2)
+            filehandler = RotatingFileHandler("./logs/bigcgi.log", maxBytes=50000, backupCount=2)
             filehandler.setFormatter(formatter)
             self.logger.addHandler(filehandler)
             handler = BufferedMongoHandler(host='localhost',
