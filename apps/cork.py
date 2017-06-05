@@ -16,7 +16,7 @@ cork = Cork(
                            username=app_settings.DATABASE_USERNAME,
                            password=app_settings.DATABASE_PASSWORD,
                            initialize=False),
-    email_sender="brianmsauer@gmail.com",
+    email_sender=appsettings.SMTP_USERNAME+"@gmail.com",
     smtp_url=smtp_url,
 )
 
