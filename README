@@ -22,3 +22,7 @@ MANUAL INSTALL INSTRUCTIONS
     - make sure mongod started with auth off, apache24 started, rabbitmq started
     - cd to serversetup, run sudo -E ./install.tcl
     - supervisord -c supervisord.conf
+
+NOTES
+Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
+azure functions, ibm openwhisk
