@@ -2,7 +2,6 @@ import bottle
 from beaker.middleware import SessionMiddleware
 from cork import AuthException
 import requests
-import base64
 import os
 import tempfile
 import uuid

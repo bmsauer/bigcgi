@@ -1,5 +1,6 @@
 import bottle
 import uuid
+import base64
 
 class AccessDeniedException(Exception):
     pass
