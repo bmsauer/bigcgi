@@ -20,12 +20,13 @@ from cork.backends import MongoDBBackend
 import pymongo
 
 from settings import app_settings
+from exceptions import *
 
 #sets up an admin user in the database.
 
 def run(*args):
     #cork (app auth)
-    mb = MongoDBBackend(db_name='bigcgi-cork', initialize=True)
+    mb = MongoDBBackend(db_name=app_settings.DATABASE_CORK, initialize=True)
     cork = Cork(backend=mb)
     admin_hash = cork._hash("admin", app_settings.ADMIN_PASSWORD)
     mb.users._coll.insert({
@@ -75,9 +76,19 @@ def create_databases_with_auth(*args):
 def create_role(*args):
     new_role_name = args[0]
     new_role_level = args[1]
-    mb = MongoDBBackend(db_name='bigcgi-cork', initialize=True, username=app_settings.DATABASE_USERNAME, password=app_settings.DATABASE_PASSWORD)
+    mb = MongoDBBackend(db_name=app_settings.DATABASE_CORK, initialize=True, username=app_settings.DATABASE_USERNAME, password=app_settings.DATABASE_PASSWORD)
     mb.roles._coll.insert({'role': new_role_name, 'val': new_role_level})
-    
+
+def create_test_databases(*args):
+    create_databases_with_auth(app_settings.DATABASE_CORK)
+    create_databases_with_auth(app_settings.DATABASE_MAIN)
+
+def delete_test_databases(*args):
+    if app_settings.BIGCGI_ENV != "TEST":
+        raise ToolsException("Cannot delete test databases if not in test environment.")
+    client = pymongo.MongoClient(app_settings.DATABASE_URI)
+    client.drop_database(app_settings.DATABASE_CORK)
+    client.drop_database(app_settings.DATABASE_MAIN)
     
 
 if __name__=="__main__":

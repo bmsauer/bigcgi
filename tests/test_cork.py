@@ -25,7 +25,7 @@ def setup_func():
 def teardown_func():
     pass
 
-    
+"""    
 @with_setup(setup_func, teardown_func)
 def test_index():
     testapp = TestApp(app.app)
@@ -33,5 +33,5 @@ def test_index():
     assert "bigCGI" in response
     assert "errormsg" in response
     assert "flashmsg" in response
-
+"""
 

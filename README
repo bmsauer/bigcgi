@@ -23,6 +23,9 @@ MANUAL INSTALL INSTRUCTIONS
     - cd to serversetup, run sudo -E ./install.tcl
     - supervisord -c supervisord.conf
 
+RUN TESTS
+    - nosetests -vsx tests
+
 NOTES
 Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
 azure functions, ibm openwhisk

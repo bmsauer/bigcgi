@@ -21,6 +21,7 @@ from logging.handlers import RotatingFileHandler
 from log4mongo.handlers import BufferedMongoHandler
 
 class AppSettings(object):
+    BIGCGI_ENV = os.environ["BIGCGI_ENV"]
     SECRET_KEY = os.environ["BIGCGI_SECRET_KEY"]
     ADMIN_PASSWORD = os.environ["BIGCGI_ADMIN_PASSWORD"]
     SMTP_USERNAME = os.environ["BIGCGI_SMTP_USERNAME"]
@@ -30,6 +31,8 @@ class AppSettings(object):
     DATABASE_USERNAME = os.environ["BIGCGI_DATABASE_USERNAME"]
     DATABASE_PASSWORD = os.environ["BIGCGI_DATABASE_PASSWORD"]
     DATABASE_URI = "mongodb://localhost:27017"
+    DATABASE_MAIN = "bigcgi-main"
+    DATABASE_CORK = "bigcgi-cork"
     
     CGI_BASE_PATH_TEMPLATE = "/home/{}/public_html"
 
@@ -59,4 +62,20 @@ class AppSettings(object):
             self.logger.setLevel("INFO")
         return self.logger
 
-app_settings = AppSettings()
+class TestSettings(AppSettings):
+    DATABASE_MAIN = "bigcgi-main-test"
+    DATABASE_CORK = "bigcgi-cork-test"
+
+    def get_logger(self):
+        if self.logger == None:
+            format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            logging.basicConfig(format=format)
+            self.logger = logging.getLogger()
+        self.logger.setLevel("DEBUG")
+        return self.logger
+
+
+if os.environ.get("BIGCGI_ENV", None) == "TEST":
+    app_settings = TestSettings()
+else:
+    app_settings = AppSettings()

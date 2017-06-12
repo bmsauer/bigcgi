@@ -1,5 +1,5 @@
 env/*
-env.sh
+*env.sh
 __pycache__
 *.pyc
 logs/*.log*
