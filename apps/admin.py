@@ -18,7 +18,7 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 import bottle
 from util.request import *
 from settings import app_settings
-from apps.cork import cork
+from apps.cork import get_cork_instance
 import os
 
 admin_app = bottle.Bottle()
@@ -27,6 +27,7 @@ admin_app.install(require_csrf)
 @admin_app.route('/')
 def admin():
     """Only admin users can see this"""
+    cork = get_cork_instance()
     cork.require(role='admin', fail_redirect='/?error=Not authorized.')
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
@@ -46,6 +47,7 @@ def admin():
 
 @admin_app.post("/delete-user")
 def admin_delete_user():
+    cork = get_cork_instance()
     cork.require(role='admin', fail_redirect="/?error=Not authorized.")
     username = post_get('username')
     try:
@@ -59,6 +61,7 @@ def admin_delete_user():
 
 @admin_app.post("/modify-user-role")
 def admin_modify_user_role():
+    cork = get_cork_instance()
     cork.require(role="admin", fail_redirect="/?error=Not authorized.")
     username = post_get("username")
     role = post_get("role")

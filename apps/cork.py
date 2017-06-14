@@ -27,30 +27,35 @@ app_settings.get_logger()
 cork_app = bottle.Bottle()
 cork_app.install(require_csrf)
 
-smtp_url = 'ssl://{}:{}@smtp.gmail.com:465'.format(app_settings.SMTP_USERNAME, app_settings.SMTP_PASSWORD)
-cork = Cork(
-    backend=MongoDBBackend(db_name='bigcgi-cork',
+def get_cork_instance():
+    smtp_url = 'ssl://{}:{}@smtp.gmail.com:465'.format(app_settings.SMTP_USERNAME, app_settings.SMTP_PASSWORD)
+    cork = Cork(
+        backend=MongoDBBackend(db_name='bigcgi-cork',
                            username=app_settings.DATABASE_USERNAME,
                            password=app_settings.DATABASE_PASSWORD,
                            initialize=False),
-    email_sender=app_settings.SMTP_USERNAME+"@gmail.com",
-    smtp_url=smtp_url,
-)
+        email_sender=app_settings.SMTP_USERNAME+"@gmail.com",
+        smtp_url=smtp_url,
+    )
+    return cork
 
 @cork_app.post('/login')
 def login():
     #Authenticate users
+    cork = get_cork_instance()
     username = post_get('username')
     password = post_get('password')
     cork.login(username, password, success_redirect='/?flash=Hello {}.'.format(username), fail_redirect='/?error=Login failure.')
 
 @cork_app.route('/logout')
 def logout():
+    cork = get_cork_instance()
     cork.logout(success_redirect='/?flash=Logout success.')
 
 @cork_app.post('/register')
 def register():
     #Send out registration email
+    cork = get_cork_instance()
     username = post_get('username')
     password = post_get('password')
     email_addr = post_get('email_address')
@@ -65,6 +70,7 @@ def register():
 @cork_app.route('/validate_registration/:registration_code')
 def validate_registration(registration_code):
     """Validate registration, create user account"""
+    cork = get_cork_instance()
     cork.validate_registration(registration_code)
     bottle.redirect("/?flash=Thank you for registering.")
     #return 'Thanks. <a href="/">Go to login</a>'
@@ -72,6 +78,7 @@ def validate_registration(registration_code):
 @cork_app.post("/reset-password")
 def reset_password():
     """Send out password reset email"""
+    cork = get_cork_instance()
     try:
         cork.send_password_reset_email(
             username=post_get('username'),
@@ -83,6 +90,7 @@ def reset_password():
 
 @cork_app.get("/reset-password")
 def reset_password_view():
+    cork = get_cork_instance()
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
     try:
@@ -98,5 +106,6 @@ def change_password_view(reset_code):
 
 @cork_app.post("/change-password")
 def change_password():
+    cork = get_cork_instance()
     cork.reset_password(post_get('reset_code'), post_get('password'))
     bottle.redirect("/?flash=Password successfully reset.")

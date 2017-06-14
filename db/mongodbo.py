@@ -32,7 +32,7 @@ stats: {
 bigcgi-main.apps
 {
 username: "username",
-appname: "appname",
+name: "appname",
 stats: {
   hits: 0,
   total_millisecs: 0,

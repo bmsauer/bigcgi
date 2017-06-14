@@ -27,7 +27,7 @@ from settings import app_settings
 from db.mongodbo import AppDBOMongo
 from util.request import *
 from apps.admin import admin_app
-from apps.cork import cork_app, cork
+from apps.cork import cork_app, get_cork_instance
 
 app_settings.get_logger()
 
@@ -69,6 +69,7 @@ def server_static(filepath):
 #---------------------------------------------------- 
 @main_app.route("/")
 def index():
+    cork = get_cork_instance()
     flash = bottle.request.params.flash or None
     error = bottle.request.params.error or None
     try:
@@ -80,6 +81,7 @@ def index():
 
 @main_app.route("/dashboard")
 def dashboard():
+    cork = get_cork_instance()
     cork.require(role="user", fail_redirect='/?error=You are not authorized to access this page.')
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
@@ -92,6 +94,7 @@ def dashboard():
 
 @main_app.get("/create-app")
 def create_app_view():
+    cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
@@ -101,6 +104,7 @@ def create_app_view():
 
 @main_app.get("/upgrade-app/<appname>")
 def upgrade_app_view(appname):
+    cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
@@ -111,6 +115,7 @@ def upgrade_app_view(appname):
 
 @main_app.get("/delete-app/<appname>")
 def delete_app_view(appname):
+    cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
     error = bottle.request.query.error or None
@@ -121,6 +126,7 @@ def delete_app_view(appname):
 
 @main_app.post("/delete-app/<appname>")
 def delete_app(appname):
+    cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     user = cork.current_user
     current_user = user.username
@@ -135,6 +141,7 @@ def delete_app(appname):
 
 @main_app.post("/create-app")
 def create_app():
+    cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     user = cork.current_user
     current_user = user.username
@@ -196,7 +203,7 @@ def bigcgi_run(username,appname):
     #try:
     #    creds = parse_basic_auth(bottle.request.headers)
     #except AccessDeniedException as e:
-    #    bottle.abort(401, str(e))
+    #    bottle.abort(401, strn(e))
         
     #if not authorize(creds):
     #    bottle.abort(401, "Authorization failed.")
