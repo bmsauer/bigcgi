@@ -27,7 +27,7 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
     <ul>
       <li><strong>Hits:</strong> {{app["hits"]}}</li>
       %if app["hits"] > 0:
-      <li><strong>Avg Time (ms):</strong> {{app["total_millisecs"]/app["hits"]}}</li>
+      <li><strong>Avg Time (ms):</strong> {{round(app["total_millisecs"]/app["hits"],2)}}</li>
       %else:
       <li><strong>Avg Time (ms):</strong> 0 </li>
       %end

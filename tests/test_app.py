@@ -15,23 +15,55 @@ You should have received a copy of the GNU General Public License
 along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from webtest import TestApp
 from nose import with_setup
+from boddle import boddle
+from unittest.mock import MagicMock
 
-import app
+from util.test import CorkMock
+from util.test import AppDBOMongoMock
+from util.test import get_csrf_token_mock, generate_csrf_token_mock
+
+import apps.cork; apps.cork.cork = CorkMock()
+import db.mongodbo; db.mongodbo.AppDBOMongo = AppDBOMongoMock
+import util.request; util.request.get_csrf_token = get_csrf_token_mock
+util.request.generate_csrf_token = generate_csrf_token_mock
+
+from app import index, dashboard, create_app_view, upgrade_app_view, delete_app_view
 
 def setup_func():
     pass
 def teardown_func():
     pass
 
-    
-@with_setup(setup_func, teardown_func)
 def test_index():
-    testapp = TestApp(app.app)
-    response = testapp.get("/?error=errormsg&flash=flashmsg")
-    assert "bigCGI" in response
-    assert "errormsg" in response
-    assert "flashmsg" in response
+    with boddle(params={"error":"errormsg", "flash":"flashmsg"}):
+        response = index()
+        assert "bigCGI" in response
+        assert "errormsg" in response
+        assert "flashmsg" in response
 
+def test_dashboard():
+    with boddle(params={}):
+        response = dashboard()
+        assert "app1" in response
+        assert "app2" in response
+        assert "3.0" in response
+        assert "2.0" in response
 
+def test_create_app_view():
+    with boddle(params={}):
+        response = create_app_view()
+        assert "Create App" in response
+
+def test_upgrade_app_view():
+    with boddle(params={}):
+        response = upgrade_app_view("testapp")
+        assert "Upgrade App" in response
+        assert "testapp" in response
+
+def test_delete_app_view():
+    with boddle(params={}):
+        response = delete_app_view("testapp")
+        assert "Delete App" in response
+        assert "testapp" in response
+        

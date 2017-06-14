@@ -48,9 +48,9 @@ class MongoDatabaseConnection(object):
 class ReportingDBOMongo(MongoDatabaseConnection):
     def __init__(self):
         super().__init__()
-        self.maindb = self.client["bigcgi-main"]
+        self.maindb = self.client[app_settings.DATABASE_MAIN]
         self.maindb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
-        self.reportingdb = self.client["bigcgi-reporting"]
+        self.reportingdb = self.client[app_settings.DATABASE_REPORTING]
         self.reportingdb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
 
     def create_monthly_hits_report(self):
@@ -69,12 +69,10 @@ class ReportingDBOMongo(MongoDatabaseConnection):
             "date":datetime.datetime.utcnow(),
             "hits":hits})
         
-            
-        
 class AppDBOMongo(MongoDatabaseConnection):
     def __init__(self):
         super().__init__()
-        self.db = self.client["bigcgi-main"]
+        self.db = self.client[app_settings.DATABASE_MAIN]
         self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
 
     def close(self):

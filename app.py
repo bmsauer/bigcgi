@@ -31,17 +31,17 @@ from apps.cork import cork_app, cork
 
 app_settings.get_logger()
 
-app = bottle.Bottle()
-app.install(require_csrf)
+main_app = bottle.Bottle()
+main_app.install(require_csrf)
 
 #----------------------------------------------------
 # ERROR PAGES
 #----------------------------------------------------
 
-@app.error(500)
-@app.error(404)
-@app.error(403)
-@app.error(400)
+@main_app.error(500)
+@main_app.error(404)
+@main_app.error(403)
+@main_app.error(400)
 def error(error):
     try:
         user = cork.current_user
@@ -60,17 +60,17 @@ def error(error):
 #----------------------------------------------------
 # STATIC FILES
 #----------------------------------------------------
-@app.route('/static/<filepath:path>')
+@main_app.route('/static/<filepath:path>')
 def server_static(filepath):
     return bottle.static_file(filepath, root='static/')
         
 #----------------------------------------------------
 # UI
 #---------------------------------------------------- 
-@app.route("/")
+@main_app.route("/")
 def index():
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
+    flash = bottle.request.params.flash or None
+    error = bottle.request.params.error or None
     try:
         user = cork.current_user
         current_user = user.username
@@ -78,7 +78,7 @@ def index():
         current_user = None
     return bottle.template("index",{"current_user":current_user, "flash":flash, "error":error})
 
-@app.route("/dashboard")
+@main_app.route("/dashboard")
 def dashboard():
     cork.require(role="user", fail_redirect='/?error=You are not authorized to access this page.')
     flash = bottle.request.query.flash or None
@@ -90,7 +90,7 @@ def dashboard():
     db.close()
     return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error})
 
-@app.get("/create-app")
+@main_app.get("/create-app")
 def create_app_view():
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
@@ -99,7 +99,7 @@ def create_app_view():
     current_user = user.username
     return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
-@app.get("/upgrade-app/<appname>")
+@main_app.get("/upgrade-app/<appname>")
 def upgrade_app_view(appname):
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
@@ -109,7 +109,7 @@ def upgrade_app_view(appname):
     
     return bottle.template("upgrade-app",{"title":"Upgrade App","current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
-@app.get("/delete-app/<appname>")
+@main_app.get("/delete-app/<appname>")
 def delete_app_view(appname):
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     flash = bottle.request.query.flash or None
@@ -119,7 +119,7 @@ def delete_app_view(appname):
 
     return bottle.template("delete-app",{"title":"Delete App", "current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
-@app.post("/delete-app/<appname>")
+@main_app.post("/delete-app/<appname>")
 def delete_app(appname):
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     user = cork.current_user
@@ -133,7 +133,7 @@ def delete_app(appname):
     app_settings.logger.info("app deleted", extra={"actor":current_user,"action":"deleted app", "object":appname})
     bottle.redirect("/dashboard?flash={}".format("Successful delete."))
 
-@app.post("/create-app")
+@main_app.post("/create-app")
 def create_app():
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
     user = cork.current_user
@@ -163,27 +163,27 @@ def create_app():
         bottle.redirect("/dashboard?flash={}".format(flash))
     
     
-@app.get("/login")
+@main_app.get("/login")
 def login_view():
     return bottle.template("login", {"title":"Login", "csrf":get_csrf_token()})
 
-@app.get("/docs")
+@main_app.get("/docs")
 def docs_view():
     return bottle.template("docs", {"title":"Documentation"})
 
-@app.get("/development")
+@main_app.get("/development")
 def development_view():
     return bottle.template("development", {"title":"Development"})
 
-@app.get("/register")
+@main_app.get("/register")
 def register_view():
     return bottle.template("register", {"title":"Register", "csrf":get_csrf_token()})
 
-@app.get("/pricing")
+@main_app.get("/pricing")
 def pricing_view():
     return bottle.template("pricing", {"title":"Pricing"})
 
-@app.get("/pricing")
+@main_app.get("/pricing")
 def pricing_view():
     return bottle.template("pricing", {"title":"Pricing"})
 
@@ -191,7 +191,7 @@ def pricing_view():
 # API
 #----------------------------------------------------
 
-@app.route("/<username>/run/<appname>",method=["GET","POST"])
+@main_app.route("/<username>/run/<appname>",method=["GET","POST"], skip=[require_csrf])
 def bigcgi_run(username,appname):
     #try:
     #    creds = parse_basic_auth(bottle.request.headers)
@@ -212,8 +212,8 @@ def bigcgi_run(username,appname):
     db.close()
     return bottle.HTTPResponse(status=response.status_code, body=response.text)
 
-app.mount("/admin/", admin_app)
-app.merge(cork_app)
+main_app.mount("/admin/", admin_app)
+main_app.merge(cork_app)
 session_opts = {
     'session.cookie_expires': True,
     'session.encrypt_key': app_settings.SECRET_KEY,
@@ -222,7 +222,7 @@ session_opts = {
     'session.type': 'cookie',
     'session.validate_key': True,
 }
-app = SessionMiddleware(app, session_opts)
+app = SessionMiddleware(main_app, session_opts)
 
 
 if __name__ == "__main__":

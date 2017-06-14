@@ -32,7 +32,7 @@ def run(*args):
     mb.users._coll.insert({
         "login": "admin",
         "email_addr": "admin@localhost.local",
-        "desc": "admin test user",
+        "desc": "admin user",
         "role": "admin",
         "hash": admin_hash,
         "creation_date": "2012-10-28 20:50:26.286723"
@@ -82,13 +82,30 @@ def create_role(*args):
 def create_test_databases(*args):
     create_databases_with_auth(app_settings.DATABASE_CORK)
     create_databases_with_auth(app_settings.DATABASE_MAIN)
+    mb = MongoDBBackend(db_name=app_settings.DATABASE_CORK, username=app_settings.DATABASE_USERNAME, password=app_settings.DATABASE_PASSWORD, initialize=True)
+    cork = Cork(backend=mb)
+    testuser_hash = cork._hash("testuser", "testuser")
+    mb.users._coll.insert({
+        "login": "testuser",
+        "email_addr": "testuser@localhost.local",
+        "desc": "test user",
+        "role": "user",
+        "hash": testuser_hash,
+        "creation_date": "2012-10-28 20:50:26.286723"
+    })
 
-def delete_test_databases(*args):
+def clear_test_databases(*args):
     if app_settings.BIGCGI_ENV != "TEST":
         raise ToolsException("Cannot delete test databases if not in test environment.")
     client = pymongo.MongoClient(app_settings.DATABASE_URI)
-    client.drop_database(app_settings.DATABASE_CORK)
-    client.drop_database(app_settings.DATABASE_MAIN)
+    for test_database in ["bigcgi-main-test", "bigcgi-cork-test"]:
+        db = client[test_database]
+        db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD, test_database)
+        for collection in db.collection_names():
+            if "system." not in collection:
+                db[collection].delete_many({})
+            
+        
     
 
 if __name__=="__main__":
