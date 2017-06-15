@@ -3,7 +3,7 @@ python:
     - "3.5"
 before_install:
     - "sudo apt-get update"
-    - "sudo apt-get install python3.5-dev"
+    - "sudo apt-get install python3-dev"
 install:
     - pip install -r requirements.txt
 script:
