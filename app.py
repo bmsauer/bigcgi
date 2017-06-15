@@ -88,7 +88,7 @@ def dashboard():
     user = cork.current_user
     current_user = user.username
     db = AppDBOMongo()
-    apps = db.get_all(current_user)
+    apps = db.get_summary(current_user)
     db.close()
     return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error})
 
@@ -149,6 +149,7 @@ def create_app():
     name = bottle.request.forms.get('name')
     if not name:
         bottle.redirect("/dashboard?error={}".format("App must have a name."))
+        return
     name = "".join(c for c in name if c.isalnum())
     upload = bottle.request.files.get('upload')
     
@@ -213,10 +214,11 @@ def bigcgi_run(username,appname):
         response = requests.get(url, params=dict(bottle.request.query))
     elif bottle.request.method == "POST":
         response = requests.post(url,data=dict(bottle.request.forms))
-    db = AppDBOMongo()
-    db.inc_hits(username, appname)
-    db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
-    db.close()
+    if response.status_code < 300:
+        db = AppDBOMongo()
+        db.inc_hits(username, appname)
+        db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
+        db.close()
     return bottle.HTTPResponse(status=response.status_code, body=response.text)
 
 main_app.mount("/admin/", admin_app)

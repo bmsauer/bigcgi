@@ -113,9 +113,9 @@ class AppDBOMongo(MongoDatabaseConnection):
         self.db.apps.delete_one({"username":username, "name":appname})
         self.db.users.update_one({"username":username}, {"$pull":{"apps": appname}})
 
-    def get_all(self, username):
+    def get_summary(self, username):
         """
-        AppDBOMongo.get_all() - gets all apps and stats for a user
+        AppDBOMongo.get_summary() - gets all apps and stats for a user
         Params:
         - username (string) : the name of the user
         Returns:
@@ -142,13 +142,13 @@ class AppDBOMongo(MongoDatabaseConnection):
         },
         {
             "$inc": {"stats.hits":1}
-        }, upsert=True)
+        })
         self.db.users.update_one({
             "username":username,
         },
         {
             "$inc": {"stats.monthly_hits":1}
-        }, upsert=True)
+        })
 
     def inc_millisecs(self, username, appname, mills):
         """
@@ -167,7 +167,7 @@ class AppDBOMongo(MongoDatabaseConnection):
             },
             {
                 "$inc": {"stats.total_millisecs":mills}
-            }, upsert=True)
+            })
         
         
         
