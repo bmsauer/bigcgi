@@ -1,0 +1,20 @@
+language: python
+python:
+    - "3.5"
+before_install:
+    - "sudo apt-get update"
+    - "sudo apt-get install python3.5-dev"
+install:
+    - pip install -r requirements.txt
+script:
+    - nosetests -vsx tests
+env:
+    global:
+	- BIGCGI_ENV=TEST
+	- BIGCGI_SECRET_KEY=test
+	- BIGCGI_ADMIN_PASSWORD=test
+	- BIGCGI_SMTP_USERNAME=test
+	- BIGCGI_SMTP_PASSWORD=test
+	- BIGCGI_DATABASE_USERADMIN_PASSWORD=test
+	- BIGCGI_DATABASE_USERNAME=test
+	- BIGCGI_DATABASE_PASSWORD=test
