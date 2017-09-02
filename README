@@ -3,14 +3,16 @@ This is a repo for bigcgi, containing application and server bootstrap code.
 See LICENSE
 
 TODO LIST:
+- proc bomb fix
+- shared mongoclient
 - UNIT TESTS
 - OTHER CONSIDERATIONS
   - backup server
   - fleet management (jails + ansible + supervisor?)
   - watchdog process
 
-MANUAL INSTALL INSTRUCTIONS
-  - INSTALL DEPENDENCIES
+INSTALL INSTRUCTIONS
+  - MANUAL INSTALL
     - create bigcgi user with adduser
     - install packages git, bash, sudo, tcl86, python35, apache24, mongodb, rabbitmq, supervisord
       - for apache24, it must be compiled with suexec
@@ -22,6 +24,10 @@ MANUAL INSTALL INSTRUCTIONS
     - make sure mongod started with auth off, apache24 started, rabbitmq started
     - cd to serversetup, run sudo -E ./install.tcl
     - supervisord -c supervisord.conf
+  - VAGRANT
+    - cd to serversetup
+    - vagrant up && vagrant rsync-auto
+    - some manual steps still for dev: comment out ssl config in apache, chown -R bigcgi:bigcgi .
 
 RUN TESTS
     - nosetests -vsx tests
@@ -29,3 +35,7 @@ RUN TESTS
 NOTES
 Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
 azure functions, ibm openwhisk
+
+To make package of custom apache24: build port, then run "make package".  Package tar will be in
+./work/pkg
+

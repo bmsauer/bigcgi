@@ -60,8 +60,12 @@ exec chown root:wheel /home/bigcgi/bigcgi-repo/script/delprog.tcl
 #---------------------------
 #  make log dir
 #---------------------------
-exec mkdir ../logs
-exec chown bigcgi:bigcgi ../logs
+if { ![file exists /home/bigcgi/bigcgi-repo/logs] } {
+    exec mkdir /home/bigcgi/bigcgi-repo/logs
+} else {
+    puts "Logs directory already exists."
+}
+exec chown bigcgi:bigcgi /home/bigcgi/bigcgi-repo/logs
 
 #---------------------------
 #  apache config
@@ -69,7 +73,7 @@ exec chown bigcgi:bigcgi ../logs
 #puts "Adding /usr/local/bigcgi if not exist..."
 #file mkdir /usr/local/bigcgi
 puts "Copying bigcgi_apache.conf to /usr/local/etc/apache24/Includes"
-file copy -force bigcgi_apache.conf /usr/local/etc/apache24/Includes/bigcgi_apache.conf
+file copy -force /home/bigcgi/bigcgi-repo/serversetup/bigcgi_apache.conf /usr/local/etc/apache24/Includes/bigcgi_apache.conf
 puts "Restarting server..."
 if { [catch  { exec service apache24 restart } msg ] } {
   puts "Output from apache restart: $::errorInfo"
@@ -79,9 +83,10 @@ if { [catch  { exec service apache24 restart } msg ] } {
 # mongodb config
 #---------------------------
 puts "Initializing auth db..."
-exec python3.5 ../toolrunner.py setup_auth_db run ;# do this first, while auth is off
+exec service mongod start
+exec python3.5 /home/bigcgi/bigcgi-repo/toolrunner.py setup_auth_db run ;# do this first, while auth is off
 puts "Moving mongodb config..."
-file copy -force bigcgi_mongodb.conf /usr/local/etc/mongodb.conf
+file copy -force /home/bigcgi/bigcgi-repo/serversetup/bigcgi_mongodb.conf /usr/local/etc/mongodb.conf
 puts "Restarting mongod..."
 exec service mongod restart
 

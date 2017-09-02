@@ -42,12 +42,12 @@ stats: {
 """
 
 class MongoDatabaseConnection(object):
-    def __init__(self):
-        self.client = pymongo.MongoClient(app_settings.DATABASE_URI, w=0)
-
+    def __init__(self, client):
+        self.client = client
+        
 class ReportingDBOMongo(MongoDatabaseConnection):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, client):
+        super().__init__(client)
         self.maindb = self.client[app_settings.DATABASE_MAIN]
         self.maindb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
         self.reportingdb = self.client[app_settings.DATABASE_REPORTING]
@@ -70,8 +70,8 @@ class ReportingDBOMongo(MongoDatabaseConnection):
             "hits":hits})
         
 class AppDBOMongo(MongoDatabaseConnection):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, client):
+        super().__init__(client)
         self.db = self.client[app_settings.DATABASE_MAIN]
         self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
 

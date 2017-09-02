@@ -17,11 +17,11 @@ class ResponseMock(object):
         self.status_code = status_code
         self.text = text
         self.elapsed = elapsed
-        
+"""      
 class AppDBOMongoMock(object):
     APPS = []
     
-    def __init__(self):
+    def __init__(self, client):
         pass
     
     def get_summary(self, username):
@@ -60,7 +60,7 @@ class AppDBOMongoMock(object):
 
     def close(self):
         pass
-
+"""
 def generate_csrf_token_mock():
     return "123"
 

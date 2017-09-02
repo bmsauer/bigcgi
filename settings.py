@@ -19,6 +19,10 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from log4mongo.handlers import BufferedMongoHandler
+import pymongo
+import mongomock
+from unittest.mock import MagicMock
+
 
 class AppSettings(object):
     BIGCGI_ENV = os.environ["BIGCGI_ENV"]
@@ -39,6 +43,7 @@ class AppSettings(object):
 
     def __init__(self):
         self.logger = None
+        self.database = None
 
     def get_logger(self):
         if self.logger == None:
@@ -63,10 +68,23 @@ class AppSettings(object):
             self.logger.setLevel("INFO")
         return self.logger
 
+    def get_database(self):
+        if self.database == None:
+            self.database = pymongo.MongoClient(self.DATABASE_URI)
+        return self.database
+
 class TestSettings(AppSettings):
     DATABASE_MAIN = "bigcgi-main-test"
     DATABASE_CORK = "bigcgi-cork-test"
+    DATABASE_REPORTING = "bigcgi-reporting-test"
 
+    def __init__(self):
+        self.logger = None
+        self.database = mongomock.MongoClient()
+        self.database[TestSettings.DATABASE_MAIN].authenticate = MagicMock()
+        self.database[TestSettings.DATABASE_CORK].authenticate = MagicMock()
+        self.database[TestSettings.DATABASE_REPORTING].authenticate = MagicMock()
+        
     def get_logger(self):
         if self.logger == None:
             format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -74,6 +92,9 @@ class TestSettings(AppSettings):
             self.logger = logging.getLogger()
         self.logger.setLevel("DEBUG")
         return self.logger
+
+    def get_database(self):
+        return self.database
 
 
 if os.environ.get("BIGCGI_ENV", None) == "TEST":

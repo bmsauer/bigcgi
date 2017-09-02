@@ -46,5 +46,13 @@ if { [catch { exec chmod -R 711 /home/$username } msg ] } {
     puts "Error changing home dir permissions: $msg"
     exit 2
 }
+if { [catch { exec rctl -a user:$username:maxproc:deny=10/user } msg ] } {
+    puts "Error setting process resource limits: $msg"
+    exit 2
+}
+if { [catch { exec rctl -a user:$username:memoryuse:deny=1G/user } msg ] } {
+    puts "Error setting memory resource limits: $msg"
+    exit 2
+}
 
 exit 0

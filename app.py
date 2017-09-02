@@ -43,6 +43,7 @@ main_app.install(require_csrf)
 @main_app.error(403)
 @main_app.error(400)
 def error(error):
+    cork = get_cork_instance()
     try:
         user = cork.current_user
         actor = user.username
@@ -56,7 +57,7 @@ def error(error):
                                   "object":obj
                               })
     return bottle.template("error", {"title":error.status, "message":error.body})
-        
+    
 #----------------------------------------------------
 # STATIC FILES
 #----------------------------------------------------
@@ -87,7 +88,7 @@ def dashboard():
     error = bottle.request.query.error or None
     user = cork.current_user
     current_user = user.username
-    db = AppDBOMongo()
+    db = AppDBOMongo(app_settings.get_database())
     apps = db.get_summary(current_user)
     db.close()
     return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error})
@@ -132,7 +133,7 @@ def delete_app(appname):
     current_user = user.username
 
     app_location = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user), appname)
-    db = AppDBOMongo()
+    db = AppDBOMongo(app_settings.get_database())
     db.delete(appname, current_user)
     db.close()
     os.system("sudo script/delprog.tcl {}".format(app_location))
@@ -161,7 +162,7 @@ def create_app():
         
     error=None
     flash="Successfully created app."
-    db = AppDBOMongo()
+    db = AppDBOMongo(app_settings.get_database())
     db.create(name, current_user)
     db.close()
     if error:
@@ -185,7 +186,9 @@ def development_view():
 
 @main_app.get("/register")
 def register_view():
-    return bottle.template("register", {"title":"Register", "csrf":get_csrf_token()})
+    flash = bottle.request.query.flash or None
+    error = bottle.request.query.error or None
+    return bottle.template("register", {"title":"Register", "csrf":get_csrf_token(), "flash":flash, "error":error})
 
 @main_app.get("/pricing")
 def pricing_view():
@@ -215,7 +218,7 @@ def bigcgi_run(username,appname):
     elif bottle.request.method == "POST":
         response = requests.post(url,data=dict(bottle.request.forms))
     if response.status_code < 300:
-        db = AppDBOMongo()
+        db = AppDBOMongo(app_settings.get_database())
         db.inc_hits(username, appname)
         db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
         db.close()

@@ -5,3 +5,4 @@ __pycache__
 logs/*.log*
 *.pid
 celerybeat-schedule*
+.vagrant

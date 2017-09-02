@@ -18,6 +18,7 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 from celery import Celery
 from celery.schedules import crontab
 from db.mongodbo import ReportingDBOMongo
+from settings import app_settings
 
 """
 run a worker: celery -A tasks.tasks worker --loglevel=info
@@ -37,7 +38,7 @@ app.conf.worker_concurrency = 2
 
 @app.task
 def generate_monthly_report():
-    r = ReportingDBOMongo()
+    r = ReportingDBOMongo(app_settings.get_database())
     r.create_monthly_hits_report()
     return True
     

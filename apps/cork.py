@@ -62,7 +62,11 @@ def register():
 
     status = os.system("sudo script/adduser.tcl " + username)
     if status != 0:
-        bottle.abort(500, "Failed to add user")
+        if status == 512:
+            bottle.redirect("?error=Username already exists.")
+        else:
+            app_settings.logger.error("failed to add user from script.", {"actor": username, "action":"error", "object":"register"})
+            bottle.abort(500, "Failed to add user")
     cork.register(username, password, email_addr)
     app_settings.logger.info("new user registered", {"actor":username,"action":"registered", "object":"bigcgi"})
     bottle.redirect("/?flash=Confirmation email sent.")

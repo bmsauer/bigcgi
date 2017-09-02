@@ -47,6 +47,7 @@ def get_csrf_token():
     return session['csrf']
         
 def require_csrf(callback):
+    current_user = None
     def wrapper(*args, **kwargs):
         session = bottle.request.environ.get('beaker.session')
         if bottle.request.method == 'POST':
