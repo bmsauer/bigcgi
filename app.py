@@ -222,7 +222,11 @@ def bigcgi_run(username,appname):
         db.inc_hits(username, appname)
         db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
         db.close()
-    return bottle.HTTPResponse(status=response.status_code, body=response.text)
+    h = response.headers
+    return bottle.HTTPResponse(status=response.status_code, body=response.text, headers=None,
+                               Content_Type=h["Content-Type"],
+                               Access_Control_Allow_Origin=h["Access-Control-Allow-Origin"],
+    )
 
 main_app.mount("/admin/", admin_app)
 main_app.merge(cork_app)

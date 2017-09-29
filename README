@@ -3,16 +3,19 @@ This is a repo for bigcgi, containing application and server bootstrap code.
 See LICENSE
 
 TODO LIST:
-- proc bomb fix
-- shared mongoclient
-- UNIT TESTS
-- OTHER CONSIDERATIONS
-  - backup server
+  - backup server process
   - fleet management (jails + ansible + supervisor?)
-  - watchdog process
-
+  - BUSINESS/MARKETING
+    - tutorial
+    - more resources and docs
+    - email list
+  - DEVELOPMENT QUALMS
+    - no relative imports / non standard imports
+    - error reporting still bad
+    
 INSTALL INSTRUCTIONS
   - MANUAL INSTALL
+    - add kern.racct.enable=1 to /boot/loader.conf, restart
     - create bigcgi user with adduser
     - install packages git, bash, sudo, tcl86, python35, apache24, mongodb, rabbitmq, supervisord
       - for apache24, it must be compiled with suexec
@@ -28,6 +31,7 @@ INSTALL INSTRUCTIONS
     - cd to serversetup
     - vagrant up && vagrant rsync-auto
     - some manual steps still for dev: comment out ssl config in apache, chown -R bigcgi:bigcgi .
+    - more manual steps: add kern.racct.enable=1 to /boot/loader.conf, restart 
 
 RUN TESTS
     - nosetests -vsx tests

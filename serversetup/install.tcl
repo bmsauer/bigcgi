@@ -70,14 +70,12 @@ exec chown bigcgi:bigcgi /home/bigcgi/bigcgi-repo/logs
 #---------------------------
 #  apache config
 #---------------------------
-#puts "Adding /usr/local/bigcgi if not exist..."
-#file mkdir /usr/local/bigcgi
-puts "Copying bigcgi_apache.conf to /usr/local/etc/apache24/Includes"
-file copy -force /home/bigcgi/bigcgi-repo/serversetup/bigcgi_apache.conf /usr/local/etc/apache24/Includes/bigcgi_apache.conf
-puts "Restarting server..."
-if { [catch  { exec service apache24 restart } msg ] } {
-  puts "Output from apache restart: $::errorInfo"
-}
+#puts "Copying bigcgi_apache.conf to /usr/local/etc/apache24/Includes"
+#file copy -force /home/bigcgi/bigcgi-repo/serversetup/bigcgi_apache.conf /usr/local/etc/apache24/Includes/bigcgi_apache.conf
+#puts "Restarting server..."
+#if { [catch  { exec service apache24 restart } msg ] } {
+#  puts "Output from apache restart: $::errorInfo"
+#}
 
 #---------------------------
 # mongodb config
