@@ -42,7 +42,6 @@ main_app.install(require_csrf)
 @main_app.error(500)
 @main_app.error(404)
 @main_app.error(403)
-@main_app.error(401)
 @main_app.error(400)
 def error(error):
     cork = get_cork_instance()
