@@ -17,6 +17,7 @@ class ResponseMock(object):
         self.status_code = status_code
         self.text = text
         self.elapsed = elapsed
+        self.headers = {}
 """      
 class AppDBOMongoMock(object):
     APPS = []

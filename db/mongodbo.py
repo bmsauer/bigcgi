@@ -36,7 +36,8 @@ name: "appname",
 stats: {
   hits: 0,
   total_millisecs: 0,
-}
+},
+security: 0, #optional
 }
 
 """
@@ -74,9 +75,6 @@ class AppDBOMongo(MongoDatabaseConnection):
         super().__init__(client)
         self.db = self.client[app_settings.DATABASE_MAIN]
         self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
-
-    def close(self):
-        self.client.close()
 
     def create(self, appname, username):
         """
@@ -119,12 +117,16 @@ class AppDBOMongo(MongoDatabaseConnection):
         Params:
         - username (string) : the name of the user
         Returns:
-        - (list) : a list of dicts containing name, hits
+        - (list) : a list of dicts containing name, hits, status, security
         """
-        apps = self.db.apps.find({"username":username})
+        apps = self.db.apps.find({"username":username}).sort("name", 1)
         return_apps = []
         for app in apps:
-            return_apps.append({"name":app["name"], "hits":app["stats"]["hits"], "total_millisecs":app["stats"]["total_millisecs"]})
+            if "security" in app:
+                security = app["security"]
+            else:
+                security = 0
+            return_apps.append({"name":app["name"], "hits":app["stats"]["hits"], "total_millisecs":app["stats"]["total_millisecs"], "security": security})
         return return_apps
 
     def inc_hits(self, username, appname):
@@ -154,7 +156,6 @@ class AppDBOMongo(MongoDatabaseConnection):
         """
         AppDBOMongo.add_avg() - adds to the total millisecs per request
         Params:
-        Params:
         - username (string) : the name of the user
         - appname (string) : the app to increment
         - mills (int) : the number of millisecs to add
@@ -169,9 +170,47 @@ class AppDBOMongo(MongoDatabaseConnection):
                 "$inc": {"stats.total_millisecs":mills}
             })
         
-        
-        
-            
+    def secure_app(self, username, appname, security_setting):
+        """
+        AppDBOMongo.secure_app() - sets the security setting on an app
+        Params:
+        - username (string) : the name of the user
+        - appname (string) : the name of the app
+        - security_setting (int) : 1 for secure, 0 for open
+        Returns:
+        - Nothing
+        """
+        self.db.apps.update_one({
+            "username": username,
+            "name": appname
+        },
+        {
+            "$set": {"security": security_setting}
+        })
+
+    def app_secure(self, username, appname):
+        """
+        AppDBOMongo.app_secure() - gets the security of an app
+        Params:
+        - username (string) : the name of the user
+        - appname (string) : the name of the app
+        Returns:
+        - (bool) - true if secure, false if not
+        """
+        app = self.db.apps.find_one({"username":username, "name": appname})
+        if not app:
+            return False
+        if "security" in app:
+            try:
+                security = int(app["security"])
+                if security == 1:
+                    return True
+                else:
+                    return False
+            except ValueError:
+                return False
+        else:
+            return False
         
         
         

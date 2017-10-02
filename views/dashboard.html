@@ -39,6 +39,17 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
     <div class="action-container">
       <a href="/delete-app/{{app['name']}}"><img src="static/img/trash-4x.png" alt="Delete" title="Delete"/></a>
       <a href="/upgrade-app/{{app['name']}}"><img src="static/img/arrow-circle-top-4x.png" alt="Re-Upload" title="Upgrade"/></a>
+      %if app["security"] == 0:
+      <form class="button-form" method="post" action="/secure-app/{{app['name']}}/1">
+	<input type="image" src="static/img/lock-unlocked-4x.png" alt="Secure App" title="Secure App"/>
+	<input type="hidden" name="csrf" value="{{csrf}}" />
+      </form>
+      %else:
+      <form class="button-form" method="post" action="/secure-app/{{app['name']}}/0">
+	<input type="image" src="static/img/lock-locked-4x.png" alt="Unsecure App" title="Unsecure App" />
+	<input type="hidden" name="csrf" value="{{csrf}}" />
+      </form>
+      %end
     </div>
   </div>
 </div>

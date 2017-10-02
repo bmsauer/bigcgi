@@ -19,10 +19,32 @@ import bottle
 import uuid
 import base64
 
+from cork import Cork
+from cork.backends import MongoDBBackend
+import pymongo
+from settings import app_settings
+from exceptions import *
+from util.auth import get_cork_instance
+
 class AccessDeniedException(Exception):
     pass
 
-def authorize(creds):
+def authorize(username, creds):
+    cork = get_cork_instance()
+    creds_username = creds[0]
+    creds_password = creds[1]
+    if creds_username != username:
+        return False
+    user = cork._store.users._coll.find_one({"login": username})
+    if not user:
+        return False
+    salted_hash = user["hash"]
+    if hasattr(salted_hash, 'encode'):
+        salted_hash = salted_hash.encode('ascii')
+    print(username, creds_password, salted_hash)
+    valid = cork._verify_password(username, creds_password, salted_hash)
+    if not valid:
+        return False
     return True
 
 def parse_basic_auth(headers):

@@ -21,23 +21,12 @@ from cork.backends import MongoDBBackend
 from util.request import *
 from settings import app_settings
 import os
+from util.auth import get_cork_instance
 
 app_settings.get_logger()
 
 cork_app = bottle.Bottle()
 cork_app.install(require_csrf)
-
-def get_cork_instance():
-    smtp_url = 'ssl://{}:{}@smtp.gmail.com:465'.format(app_settings.SMTP_USERNAME, app_settings.SMTP_PASSWORD)
-    cork = Cork(
-        backend=MongoDBBackend(db_name='bigcgi-cork',
-                           username=app_settings.DATABASE_USERNAME,
-                           password=app_settings.DATABASE_PASSWORD,
-                           initialize=False),
-        email_sender=app_settings.SMTP_USERNAME+"@gmail.com",
-        smtp_url=smtp_url,
-    )
-    return cork
 
 @cork_app.post('/login')
 def login():

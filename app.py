@@ -27,7 +27,8 @@ from settings import app_settings
 from db.mongodbo import AppDBOMongo
 from util.request import *
 from apps.admin import admin_app
-from apps.cork import cork_app, get_cork_instance
+from apps.cork import cork_app
+from util.auth import get_cork_instance
 
 app_settings.get_logger()
 
@@ -41,6 +42,7 @@ main_app.install(require_csrf)
 @main_app.error(500)
 @main_app.error(404)
 @main_app.error(403)
+@main_app.error(401)
 @main_app.error(400)
 def error(error):
     cork = get_cork_instance()
@@ -90,8 +92,7 @@ def dashboard():
     current_user = user.username
     db = AppDBOMongo(app_settings.get_database())
     apps = db.get_summary(current_user)
-    db.close()
-    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error})
+    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
 @main_app.get("/create-app")
 def create_app_view():
@@ -135,11 +136,24 @@ def delete_app(appname):
     app_location = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user), appname)
     db = AppDBOMongo(app_settings.get_database())
     db.delete(appname, current_user)
-    db.close()
     os.system("sudo script/delprog.tcl {}".format(app_location))
     app_settings.logger.info("app deleted", extra={"actor":current_user,"action":"deleted app", "object":appname})
     bottle.redirect("/dashboard?flash={}".format("Successful delete."))
 
+@main_app.post("/secure-app/<appname>/<security_setting:int>")
+def secure_app(appname, security_setting):
+    cork = get_cork_instance()
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
+    user = cork.current_user
+    current_user = user.username
+
+    db = AppDBOMongo(app_settings.get_database())
+    db.secure_app(current_user, appname, security_setting)
+    if security_setting == 1:
+        bottle.redirect("/dashboard?flash=Secured app {}.".format(appname))
+    else:
+        bottle.redirect("/dashboard?flash=Unsecured app {}.".format(appname))
+        
 @main_app.post("/create-app")
 def create_app():
     cork = get_cork_instance()
@@ -164,7 +178,6 @@ def create_app():
     flash="Successfully created app."
     db = AppDBOMongo(app_settings.get_database())
     db.create(name, current_user)
-    db.close()
     if error:
         bottle.redirect("/dashboard?error={}".format(error))
     if flash:
@@ -201,31 +214,40 @@ def pricing_view():
 #----------------------------------------------------
 # API
 #----------------------------------------------------
+@main_app.route("/<username>/run/<appname>", method="OPTIONS")
+def bigcgi_run_options(username, appname):
+    return bottle.HTTPResponse(status=200, body="", headers=None,
+                               Access_Control_Allow_Headers="Origin, Accept, Content-Type, X-Requested-with, X-CSRF-Token, Authorization",
+                               Access_Control_Allow_Methods="PUT, GET, POST, DELETE, OPTIONS",
+                               Access_Control_Allow_Origin="*",
+    )
 
 @main_app.route("/<username>/run/<appname>",method=["GET","POST"], skip=[require_csrf])
 def bigcgi_run(username,appname):
-    #try:
-    #    creds = parse_basic_auth(bottle.request.headers)
-    #except AccessDeniedException as e:
-    #    bottle.abort(401, strn(e))
+    db = AppDBOMongo(app_settings.get_database())
+    if db.app_secure(username, appname):
+        try:
+            creds = parse_basic_auth(bottle.request.headers)
+        except AccessDeniedException as e:
+            bottle.abort(401, str(e))
         
-    #if not authorize(creds):
-    #    bottle.abort(401, "Authorization failed.")
-    #else:
+        if not authorize(username, creds):
+            bottle.abort(401, "Authorization failed.")
+                
     url = "http://internal.bigcgi.com/~{}/{}".format(username, appname)
     if bottle.request.method == "GET":
         response = requests.get(url, params=dict(bottle.request.query))
     elif bottle.request.method == "POST":
         response = requests.post(url,data=dict(bottle.request.forms))
     if response.status_code < 300:
-        db = AppDBOMongo(app_settings.get_database())
         db.inc_hits(username, appname)
         db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
-        db.close()
     h = response.headers
+    content_type = h.get("Content-Type", "text/html")
+    access_control_allow_origin = h.get("Access-Control-Allow-Origin", "*")
     return bottle.HTTPResponse(status=response.status_code, body=response.text, headers=None,
-                               Content_Type=h["Content-Type"],
-                               Access_Control_Allow_Origin=h["Access-Control-Allow-Origin"],
+                               Content_Type=content_type,
+                               Access_Control_Allow_Origin=access_control_allow_origin,
     )
 
 main_app.mount("/admin/", admin_app)

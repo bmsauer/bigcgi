@@ -109,4 +109,9 @@ div.action-container{
     vertical-align:middle;
     margin-right: 5%;
 }
-    
+
+form.button-form, form.button-form input{
+    margin:0;
+    padding:0;
+    display:inline;
+}

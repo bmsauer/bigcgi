@@ -18,7 +18,7 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 import bottle
 from util.request import *
 from settings import app_settings
-from apps.cork import get_cork_instance
+from util.auth import get_cork_instance
 import os
 
 admin_app = bottle.Bottle()

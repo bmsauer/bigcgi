@@ -24,7 +24,7 @@ from util.test import get_csrf_token_mock, generate_csrf_token_mock, get_cork_in
 import os
 import bottle
 
-import apps.cork; apps.cork.get_cork_instance = get_cork_instance_test
+import util.auth; util.auth.get_cork_instance = get_cork_instance_test
 #import db.mongodbo; db.mongodbo.AppDBOMongo = AppDBOMongoMock
 import util.request; util.request.get_csrf_token = get_csrf_token_mock
 util.request.generate_csrf_token = generate_csrf_token_mock
@@ -32,7 +32,7 @@ os.system = MagicMock()
 bottle.redirect = MagicMock()
 
 from app import index, dashboard, create_app_view, upgrade_app_view, delete_app_view, delete_app
-from app import create_app, bigcgi_run
+from app import create_app, bigcgi_run, secure_app
 from settings import app_settings
 
 def setup_func():
@@ -111,6 +111,17 @@ def test_delete_app():
         #    assert not (app["name"] != "app1" and app["username"] != "testuser")
         bottle.redirect.assert_called_with("/dashboard?flash=Successful delete.")
 
+@with_setup(create_test_app, remove_test_app)
+def test_secure_app():
+    with boddle(params={}):
+        response = secure_app("app1", 1)
+        client = app_settings.get_database()
+        result = client[app_settings.DATABASE_MAIN]["apps"].find_one({"name":"app1", "username": "testuser"})
+        assert int(result["security"]) == 1
+        response = secure_app("app1", 0)
+        result = client[app_settings.DATABASE_MAIN]["apps"].find_one({"name":"app1", "username": "testuser"})
+        assert int(result["security"]) == 0
+        
 @with_setup(setup_func, teardown_func)
 def test_create_app():
     with boddle(params={}):
