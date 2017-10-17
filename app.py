@@ -62,7 +62,8 @@ def error(error):
 #----------------------------------------------------
 # STATIC FILES
 #----------------------------------------------------
-@main_app.route('/static/<filepath:path>')
+static_app = bottle.Bottle()
+@static_app.route('/static/<filepath:path>')
 def server_static(filepath):
     return bottle.static_file(filepath, root='static/')
         
@@ -251,6 +252,7 @@ def bigcgi_run(username,appname):
 
 main_app.mount("/admin/", admin_app)
 main_app.merge(cork_app)
+main_app.merge(static_app)
 session_opts = {
     'session.cookie_expires': True,
     'session.encrypt_key': app_settings.SECRET_KEY,
