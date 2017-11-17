@@ -22,6 +22,7 @@ import requests
 import os
 import tempfile
 import uuid
+import time
 
 from settings import app_settings
 from db.mongodbo import AppDBOMongo
@@ -29,6 +30,7 @@ from util.request import *
 from apps.admin import admin_app
 from apps.cork import cork_app
 from util.auth import get_cork_instance
+import util.cgi
 
 app_settings.get_logger()
 
@@ -233,19 +235,37 @@ def bigcgi_run(username,appname):
         
         if not authorize(username, creds):
             bottle.abort(401, "Authorization failed.")
-                
-    url = "http://internal.bigcgi.com/~{}/{}".format(username, appname)
-    if bottle.request.method == "GET":
-        response = requests.get(url, params=dict(bottle.request.query))
-    elif bottle.request.method == "POST":
-        response = requests.post(url,data=dict(bottle.request.forms))
-    if response.status_code < 300:
-        db.inc_hits(username, appname)
-        db.inc_millisecs(username, appname, response.elapsed.total_seconds()*1000)
-    h = response.headers
-    content_type = h.get("Content-Type", "text/html")
-    access_control_allow_origin = h.get("Access-Control-Allow-Origin", "*")
-    return bottle.HTTPResponse(status=response.status_code, body=response.text, headers=None,
+    else:
+        creds = None
+    #url = "http://internal.bigcgi.com/~{}/{}".format(username, appname)
+    #if bottle.request.method == "GET":
+    #    response = requests.get(url, params=dict(bottle.request.query))
+    #elif bottle.request.method == "POST":
+    #    response = requests.post(url,data=dict(bottle.request.forms)) #TODO: this should be changed to body
+    #if response.status_code < 300:
+    start_time = time.time()
+    output, error, return_value = util.cgi.run_cgi(
+        appname,
+        username,
+        bottle.request.method,
+        bottle.request.path,
+        bottle.request.query_string,
+        bottle.request.remote_addr,
+        creds,
+        bottle.request.content_type,
+        bottle.request.body.read().decode("utf-8"),
+        bottle.request.content_length,
+        bottle.request.headers
+    )
+    elapsed = time.time() - start_time    
+    
+    db.inc_hits(username, appname)
+    db.inc_millisecs(username, appname, elapsed*1000)
+    headers, output = util.cgi.parse_output(output)
+    content_type = headers.get("Content-Type", "text/html")
+    access_control_allow_origin = headers.get("Access-Control-Allow-Origin", "*")
+    status_code = headers.get("Status", 200)
+    return bottle.HTTPResponse(status=status_code, body=output, headers=None,
                                Content_Type=content_type,
                                Access_Control_Allow_Origin=access_control_allow_origin,
     )
