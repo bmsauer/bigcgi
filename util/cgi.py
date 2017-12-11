@@ -54,6 +54,7 @@ def run_cgi(script_name, username, request_method, path_info, query_string, remo
         "username": username,
         "body": body,
     }
+    #TODO: look into a shared memory solution 
     pickle_payload = codecs.encode(pickle.dumps(payload), "base64").decode()
     try:
         process = subprocess.run(["sudo", "script/runcgi.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, input=pickle_payload.encode("utf-8"), timeout=30)

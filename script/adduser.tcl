@@ -50,7 +50,7 @@ if { [catch { exec rctl -a user:$username:maxproc:deny=10/user } msg ] } {
     puts "Error setting process resource limits: $msg"
     exit 2
 }
-if { [catch { exec rctl -a user:$username:memoryuse:deny=1G/user } msg ] } {
+if { [catch { exec rctl -a user:$username:memoryuse:deny=64M/user } msg ] } {
     puts "Error setting memory resource limits: $msg"
     exit 2
 }
