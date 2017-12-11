@@ -257,11 +257,19 @@ def bigcgi_run(username,appname):
         bottle.request.content_length,
         bottle.request.headers
     )
-    elapsed = time.time() - start_time    
-    
+    elapsed = time.time() - start_time
     db.inc_hits(username, appname)
     db.inc_millisecs(username, appname, elapsed*1000)
-    headers, output = util.cgi.parse_output(output)
+    #print(output)
+    #print(error)
+    if error:
+        output = """
+<html><body><h1>500 Error</h1><p>error:</p><p style="border:1px solid red">{}</p>
+<p>output:</p><p style="border:1px solid black">{}</p></body></html>
+""".format(error,output)
+        headers = {"Status": 500}
+    else:
+        headers, output = util.cgi.parse_output(output)
     content_type = headers.get("Content-Type", "text/html")
     access_control_allow_origin = headers.get("Access-Control-Allow-Origin", "*")
     status_code = headers.get("Status", 200)

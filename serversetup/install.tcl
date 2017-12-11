@@ -46,16 +46,20 @@ safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcg
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/deluser.tcl}
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/moveprog.tcl}
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/delprog.tcl}
+safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.py}
+
 
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/adduser.tcl
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/deluser.tcl
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/moveprog.tcl
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/delprog.tcl
+exec chmod 700 /home/bigcgi/bigcgi-repo/script/runcgi.py
 
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/adduser.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/deluser.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/moveprog.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/delprog.tcl
+exec chown root:wheel /home/bigcgi/bigcgi-repo/script/runcgi.py
 
 #---------------------------
 #  make log dir
