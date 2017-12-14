@@ -18,3 +18,6 @@ echo "tcsh Interpreter:"
 echo $(which tcsh)
 echo "AWK Interpreter:"
 echo $(which awk)
+echo '------------------------------'
+id
+

@@ -113,6 +113,7 @@ def demote(user_uid, user_gid):
     setuid and setgid. This will change the ids for that subprocess only"""
     #https://gist.github.com/sweenzor/1685717
     def set_ids():
+        os.setgroups([])
         os.setgid(user_gid)
         os.setuid(user_uid)
     return set_ids
