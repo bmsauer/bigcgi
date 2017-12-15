@@ -39,6 +39,12 @@ stats: {
 },
 security: 0, #optional
 }
+bigcgi-logs.app-logs
+{
+username: "username",
+name: "appname",
+message: "message",
+}
 
 """
 
@@ -75,6 +81,8 @@ class AppDBOMongo(MongoDatabaseConnection):
         super().__init__(client)
         self.db = self.client[app_settings.DATABASE_MAIN]
         self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+        self.logsdb = self.client[app_settings.DATABASE_LOGS]
+        self.logsdb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
 
     def create(self, appname, username):
         """
@@ -212,6 +220,21 @@ class AppDBOMongo(MongoDatabaseConnection):
         else:
             return False
         
+    def app_log(self, username, appname,  message_list):
+        """
+        AppDBOMongo.app_log() - log a list of messages
+        Params:
+        - username (string) : the name of the user
+        - appname (string) : the name of the app
+        - message_list (list) : a list of strings, each a line to log
+        Returns:
+        - Nothing
+        """
+        app = self.db.apps.find_one({"username":username, "name": appname})
+        if not app:
+            return False
+        records = [{"username": username, "name": appname, "message": m} for m in message_list]
+        self.logsdb.applogs.insert_many(records)
         
         
     

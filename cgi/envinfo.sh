@@ -3,6 +3,7 @@
 echo "Content-Type: text/plain"
 echo ""
 echo ""
+echo "Starting output of environment..." 1>&2
 echo "OS:"
 echo $(uname -mrs)
 echo "Bash Interpreter:"
@@ -20,4 +21,5 @@ echo "AWK Interpreter:"
 echo $(which awk)
 echo '------------------------------'
 id
+echo "Done output of environment..." 1>&2
 

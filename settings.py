@@ -38,6 +38,7 @@ class AppSettings(object):
     DATABASE_MAIN = "bigcgi-main"
     DATABASE_CORK = "bigcgi-cork"
     DATABASE_REPORTING = "bigcgi-reporting"
+    DATABASE_LOGS = "bigcgi-logs"
     
     CGI_BASE_PATH_TEMPLATE = "/home/{}/public_html"
 

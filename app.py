@@ -216,6 +216,10 @@ def pricing_view():
 #----------------------------------------------------
 # API
 #----------------------------------------------------
+#@main_app.route("/<username>/logs/<appname>", method="GET", skip=[require_csrf])
+#def bigcgi_logs(username, appname):
+    
+
 @main_app.route("/<username>/run/<appname>", method="OPTIONS")
 def bigcgi_run_options(username, appname):
     return bottle.HTTPResponse(status=200, body="", headers=None,
@@ -260,15 +264,13 @@ def bigcgi_run(username,appname):
     elapsed = time.time() - start_time
     db.inc_hits(username, appname)
     db.inc_millisecs(username, appname, elapsed*1000)
-    #print(output)
-    #print(error)
-    if error:
-        output = """
-<html><body><h1>500 Error</h1><p>error:</p><p style="border:1px solid red">{}</p>
-<p>output:</p><p style="border:1px solid black">{}</p></body></html>
-""".format(error,output)
+    if return_value == 1:
+        output = bottle.template("app-error", {"output":output})
         headers = {"Status": 500}
     else:
+        error_logs = error.split("\n")
+        error_logs = [e for e in error_logs if e]
+        db.app_log(username, appname, error_logs)
         headers, output = util.cgi.parse_output(output)
     content_type = headers.get("Content-Type", "text/html")
     access_control_allow_origin = headers.get("Access-Control-Allow-Origin", "*")
