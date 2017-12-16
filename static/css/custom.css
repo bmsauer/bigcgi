@@ -79,6 +79,17 @@ dt{
 p.footer{
     text-align:center;
 }
+
+textarea
+{
+  border:1px solid #999999;
+  width:100%;
+  margin:5px 0;
+  padding:3px;
+  height:300px;
+  font-family:"Courier New";
+}
+
 /*---------------------------------------------------
   HOME
 ---------------------------------------------------*/
