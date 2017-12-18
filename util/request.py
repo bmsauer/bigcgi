@@ -41,7 +41,6 @@ def authorize(username, creds):
     salted_hash = user["hash"]
     if hasattr(salted_hash, 'encode'):
         salted_hash = salted_hash.encode('ascii')
-    print(username, creds_password, salted_hash)
     valid = cork._verify_password(username, creds_password, salted_hash)
     if not valid:
         return False
