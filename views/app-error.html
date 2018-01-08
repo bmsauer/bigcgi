@@ -1,7 +1,15 @@
 <html>
   <body>
     <h1>500 Error</h1>
-    <p>please view this apps logs for details.  output before error:</p>
+    <p>A system level occured in the execution of this script:</p>
     <p style="border:1px solid black">{{output}}</p>
+    <p>Common reasons for this:</p>
+    <ul>
+      <li>The shebang name is wrong ([Errno 2] No such file or directory: '--PATH--')</li>
+      <li>The app timed out</li>
+      <li>The app violated resource constraints</li>
+      <li>You are not the rightful user of the app</li>
+      <li>Various operating system/bigcgi problems</li>
+    </ul>
   </body>
 </html>

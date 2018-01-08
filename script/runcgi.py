@@ -140,13 +140,13 @@ if __name__ == "__main__":
         sys.exit(0)
         
     except subprocess.TimeoutExpired as e:
-        print("CGI process timeout.", file=sys.stderr)
+        print("CGI process timeout.")
         sys.exit(1)
     except KeyError as e: #user does not exist
-        print("Invalid user.", file=sys.stderr)
+        print("Invalid user.")
         sys.exit(1)
     except Exception as e:
-        print("An unknown error occurred: " + str(e), file=sys.stderr)
+        print("An unknown error occurred: " + str(e))
         sys.exit(1)
     
 

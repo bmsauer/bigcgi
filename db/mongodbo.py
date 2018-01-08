@@ -235,7 +235,21 @@ class AppDBOMongo(MongoDatabaseConnection):
             return False
         records = [{"username": username, "name": appname, "message": m} for m in message_list]
         self.logsdb.applogs.insert_many(records)
-        
+
+    def get_app_logs(self, username, appname):
+        """
+        AppDBOMongo.get_app_logs() - get a list of logs for a users app
+        Params:
+        - username (string) : the user of the app
+        - appname (string) : the app
+        Returns:
+        - (list) : list of mongodb records
+        """
+        logs = self.logsdb.applogs.find({
+            "username": username,
+            "name": appname
+        })
+        return logs
         
     
     

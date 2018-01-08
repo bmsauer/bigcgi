@@ -78,6 +78,7 @@ class TestSettings(AppSettings):
     DATABASE_MAIN = "bigcgi-main-test"
     DATABASE_CORK = "bigcgi-cork-test"
     DATABASE_REPORTING = "bigcgi-reporting-test"
+    DATABASE_LOGS = "bigcgi-logs-test"
 
     def __init__(self):
         self.logger = None
@@ -85,6 +86,7 @@ class TestSettings(AppSettings):
         self.database[TestSettings.DATABASE_MAIN].authenticate = MagicMock()
         self.database[TestSettings.DATABASE_CORK].authenticate = MagicMock()
         self.database[TestSettings.DATABASE_REPORTING].authenticate = MagicMock()
+        self.database[TestSettings.DATABASE_LOGS].authenticate = MagicMock()
         
     def get_logger(self):
         if self.logger == None:

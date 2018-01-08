@@ -185,7 +185,17 @@ def create_app():
     if flash:
         app_settings.logger.info("app created", extra={"actor":current_user,"action":"created app", "object":name})
         bottle.redirect("/dashboard?flash={}".format(flash))
-    
+
+@main_app.get("/logs/<appname>")
+def get_app_logs(appname):
+    cork = get_cork_instance()
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
+    user = cork.current_user
+    current_user = user.username
+
+    db = AppDBOMongo(app_settings.get_database())
+    logs = db.get_app_logs(current_user, appname)
+    return bottle.template("app-logs", {"title":"Logs for " + appname, "logs":logs})
     
 @main_app.get("/login")
 def login_view():
@@ -216,9 +226,6 @@ def pricing_view():
 #----------------------------------------------------
 # API
 #----------------------------------------------------
-#@main_app.route("/<username>/logs/<appname>", method="GET", skip=[require_csrf])
-#def bigcgi_logs(username, appname):
-    
 
 @main_app.route("/<username>/run/<appname>", method="OPTIONS")
 def bigcgi_run_options(username, appname):
@@ -270,7 +277,8 @@ def bigcgi_run(username,appname):
     else:
         error_logs = error.split("\n")
         error_logs = [e for e in error_logs if e]
-        db.app_log(username, appname, error_logs)
+        if error_logs:
+            db.app_log(username, appname, error_logs)
         headers, output = util.cgi.parse_output(output)
     content_type = headers.get("Content-Type", "text/html")
     access_control_allow_origin = headers.get("Access-Control-Allow-Origin", "*")
