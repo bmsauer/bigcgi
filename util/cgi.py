@@ -45,7 +45,7 @@ def run_cgi(script_name, username, request_method, path_info, query_string, remo
             "CONTENT_LENGTH": str(content_length),
             "HTTP_ACCEPT": headers["ACCEPT"],
             "HTTP_ACCEPT_ENCODING": headers["ACCEPT_ENCODING"],
-            "HTTP_ACCEPT_LANGUAGE": headers["ACCEPT_LANGUAGE"],
+            "HTTP_ACCEPT_LANGUAGE": headers.get("ACCEPT_LANGUAGE","*"),
             "HTTP_CONNECTION": headers["CONNECTION"],
             "HTTP_HOST": headers["HOST"],
             "HTTP_USER_AGENT": headers["USER-AGENT"],

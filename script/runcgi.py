@@ -131,22 +131,28 @@ if __name__ == "__main__":
     env = payload["env"]
     body = payload["body"]
     
-    #TODO: switch to fork based, like in CGIHTTPServer.py
+    oldpath = os.getcwd()
+    os.chdir("/home/{}/public_html".format(username))
     script = "/home/{}/public_html/{}".format(username, script_name)
     try:
         uid = pwd.getpwnam(username).pw_uid
         gid = pwd.getpwnam(username).pw_gid
-        process = subprocess.run([script], env=env, input=body, timeout=20, preexec_fn=demote(uid,gid))
+        #TODO: switch to fork based, like in CGIHTTPServer.py
+        process = subprocess.run([script], env=env, input=bytes(body,"utf-8"), timeout=20, preexec_fn=demote(uid,gid))
+        os.chdir(oldpath)
         sys.exit(0)
         
     except subprocess.TimeoutExpired as e:
         print("CGI process timeout.")
+        os.chdir(oldpath)
         sys.exit(1)
     except KeyError as e: #user does not exist
         print("Invalid user.")
+        os.chdir(oldpath)
         sys.exit(1)
     except Exception as e:
         print("An unknown error occurred: " + str(e))
+        os.chdir(oldpath)
         sys.exit(1)
     
 

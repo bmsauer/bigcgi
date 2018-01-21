@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 -->
 %rebase("base.html")
-
+<a class="button button-primary" href="create-app"><img src="static/img/cloud-upload-3x.png" alt = "Upload"/>Create App</a>
 %if not get("apps",None):
 <p>You have no apps!</p>
 %else:
@@ -58,4 +58,4 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 
 %end
 
-<a class="button button-primary" href="create-app"><img src="static/img/cloud-upload-3x.png" alt = "Upload"/>Create App</a>
+

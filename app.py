@@ -167,7 +167,10 @@ def create_app():
     if not name:
         bottle.redirect("/dashboard?error={}".format("App must have a name."))
         return
-    name = "".join(c for c in name if c.isalnum())
+    if "/" in name or ".." in name:
+        error="Invalid app name: cannot contain .. or /"
+        bottle.redirect("/dashboard?error={}".format(error))
+        
     upload = bottle.request.files.get('upload')
     
     with tempfile.NamedTemporaryFile() as temp_storage:
@@ -280,6 +283,7 @@ def bigcgi_run(username,appname):
         if error_logs:
             db.app_log(username, appname, error_logs)
         headers, output = util.cgi.parse_output(output)
+        
     content_type = headers.get("Content-Type", "text/html")
     access_control_allow_origin = headers.get("Access-Control-Allow-Origin", "*")
     status_code = headers.get("Status", 200)
@@ -287,6 +291,7 @@ def bigcgi_run(username,appname):
                                Content_Type=content_type,
                                Access_Control_Allow_Origin=access_control_allow_origin,
     )
+
 
 main_app.mount("/admin/", admin_app)
 main_app.merge(cork_app)

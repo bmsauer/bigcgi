@@ -16,4 +16,13 @@ It should be noted that this was not an issue before, as I had to change my Vagr
 10.3-STABLE to 10.3-RELEASE due to a recent update that broke the build.  **LESSONS LEARNED** -
 FreeBSD continues to bite me, due to their crappy support for containerization/virtualization outside
 of their jails.  Props to me for sticking with it, even though I knew it would boil down to something
-ridiculous.  Dev logs are cathartic. 
+ridiculous.  Dev logs are cathartic.
+
+-- 12-17-2017 --
+Today I pushed a commit to production that eliminates the Apache server for running CGI programs.  This
+is a really big step, and I'm very proud of it.  When I set out to do logging for apps, I struggled for
+a long time with Apache trying to get user/app specific logging.  I felt like I tried everything to
+no avail; I floundered for a long time.  In the end I did the "unthinkable"; got rid of Apache and replaced
+it with a custom CGI server implemented in Python.  I want to make note of this day because I took a
+seemingly unsurmountable problem and solved it by completely abandoning what I thought was set in stone.
+It gives me confidence that I can solve any problem thrown my way so long as I keep a creative open mind.
