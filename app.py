@@ -238,7 +238,7 @@ def bigcgi_run_options(username, appname):
                                Access_Control_Allow_Origin="*",
     )
 
-@main_app.route("/<username>/run/<appname>",method=["GET","POST"], skip=[require_csrf])
+@main_app.route("/<username>/run/<appname>",method=["GET","POST","PUT","DELETE"], skip=[require_csrf])
 def bigcgi_run(username,appname):
     db = AppDBOMongo(app_settings.get_database())
     if db.app_secure(username, appname):
