@@ -1,18 +1,36 @@
-This is a repo for bigcgi, containing application and server bootstrap code.
+bigCGI is a function as a service (FaaS) platform utilizing the CGI standard.
 
-See LICENSE
+Why CGI?
+  - CGI is easy to implement in almost any programming language
+  - CGI scripts can be run and tested locally, and are not vendor specific
+  - CGI scripts run with process isolation
+  - CGI is a stateless standard
 
-TODO LIST:
-  - backup server process
-  - fleet management (jails + ansible + supervisor?)
-  - BUSINESS/MARKETING
-    - tutorial
-    - more resources and docs
-    - email list
-    - terms of service
-  - DEVELOPMENT QUALMS
-    - no relative imports / non standard imports
-    - error reporting still bad
+But isn't CGI slow?
+  - Interpreters and process spinup are slow, but modern OS's and hardware
+    greatly reduce this bottleneck.
+  - For many applications, a few milliseconds doesn't really matter anyway
+
+How does it work?
+  - bigCGI is a python Bottle application, running on FreeBSD servers
+  - The application stores your functions on a server, and runs them according
+    to the CGI standard.
+  - The application coordinates with a cluster of servers, and ensures your
+    function is propogated across the cluster.
+  - The bigCGI applications are deployed behind a reverse proxy
+
+What is the status of this project?
+  - bigCGI is in active development and is currently in a beta stage
+
+Who can I contact?
+  - I appreciate feedback and conversation
+  - bigcgi.app (AT) gmail.com
+
+------------------------------------------
+
+See LICENSE, and TERMS
+
+------------------------------------------
     
 INSTALL INSTRUCTIONS
   - MANUAL INSTALL
@@ -36,13 +54,4 @@ INSTALL INSTRUCTIONS
 
 RUN TESTS
     - nosetests -vsx tests
-
-NOTES
-Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
-azure functions, ibm openwhisk, graph.cool, openFaas, fx, now
-
-To make package of custom apache24: build port, then run "make package".  Package tar will be in
-./work/pkg
-
-Things to look into: fcgiwrap
 

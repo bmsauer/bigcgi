@@ -1,3 +1,24 @@
+TODO LIST:
+  - backup server process
+  - fleet management (jails + ansible + supervisor?)
+  - BUSINESS/MARKETING
+    - tutorial
+    - more resources and docs
+    - email list
+    - terms of service
+    - performance benchmark
+
+NOTES
+Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
+azure functions, ibm openwhisk, graph.cool, openFaas, fx, now
+
+To make package of custom apache24: build port, then run "make package".  Package tar will be in
+./work/pkg
+
+Things to look into: fcgiwrap
+
+DEVLOG: 
+
 -- 9-28-2017 --
 Today I spent multiple hours working on a strange bug.  I was getting 403 Forbidden responses
 from bigCGI.  This was only affecting the development vagrant box; production was unaffected.

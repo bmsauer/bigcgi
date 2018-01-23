@@ -14,15 +14,5 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 -->
-%rebase("base.html", title=title)
-<form action="register" method="POST">
-  <label for="username">Username:</label><br/>
-  <input type="text" name="username" /><br/>
-  <label for="password">Password:</label><br/>
-  <input type="password" name="password" /><br/>
-  <label for="email_address">Email:</label><br/>
-  <input type="text" name="email_address" /><br/>
-  <input type="hidden" name="csrf" value="{{csrf}}" />
-  <input type="submit" />
-</form>
-<p>By creating an account, you agree to the <a href="terms">Terms of Service</a></p>
+%rebase("base.html")
+<pre>{{terms}}</pre>

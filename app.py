@@ -226,6 +226,12 @@ def pricing_view():
 def pricing_view():
     return bottle.template("pricing", {"title":"Pricing"})
 
+@main_app.get("/terms")
+def terms_view():
+    with open("TERMS", "r") as terms_file:
+        terms = terms_file.read()
+    return bottle.template("terms", {"title": "Terms of Service", "terms":terms})
+
 #----------------------------------------------------
 # API
 #----------------------------------------------------
