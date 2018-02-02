@@ -45,7 +45,7 @@ INSTALL INSTRUCTIONS
     - pip3 install -r requirements.txt
     - make sure mongod started with auth off, apache24 started, rabbitmq started
     - cd to serversetup, run sudo -E ./install.tcl
-    - supervisord -c supervisord.conf
+    - supervisord -c supervisord.conf (make sure env.sh and virtualenv activated)
   - VAGRANT
     - cd to serversetup, make env.sh and virtualenv
     - vagrant up && vagrant rsync-auto

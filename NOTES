@@ -4,9 +4,9 @@ TODO LIST:
   - BUSINESS/MARKETING
     - tutorial
     - more resources and docs
-    - email list
-    - terms of service
     - performance benchmark
+  - STRETCH IDEAS
+    - "circuit breaker" feature switches based on monitoring/alerting from logs
 
 NOTES
 Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
