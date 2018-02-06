@@ -22,6 +22,7 @@ from util.request import *
 from settings import app_settings
 import os
 from util.auth import get_cork_instance
+from util.email import send_gmail
 
 app_settings.get_logger()
 
@@ -58,6 +59,7 @@ def register():
             bottle.abort(500, "Failed to add user")
     cork.register(username, password, email_addr)
     app_settings.logger.info("new user registered", {"actor":username,"action":"registered", "object":"bigcgi"})
+    send_gmail("New bigCGI User!", "U: " + username + " E: " + email_addr, "bigcgi.app@gmail.com", "bigcgi.app@gmail.com")
     bottle.redirect("/?flash=Confirmation email sent.")
 
 @cork_app.route('/validate_registration/:registration_code')
