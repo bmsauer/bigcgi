@@ -17,6 +17,9 @@ To make package of custom apache24: build port, then run "make package".  Packag
 
 Things to look into: fcgiwrap
 
+Dev mongo shell: mongo --username bigcgi --password bigcgi --authenticationDatabase bigcgi-main bigcgi-main
+
+
 DEVLOG: 
 
 -- 9-28-2017 --

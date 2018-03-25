@@ -39,6 +39,13 @@ stats: {
 },
 security: 0, #optional
 }
+bigcgi-main.files
+{
+username: "username",
+filename: "filename",
+kind: "file|app",
+bytes_contents: bytes(file_contents)
+}
 bigcgi-logs.app-logs
 {
 username: "username",
@@ -75,6 +82,52 @@ class ReportingDBOMongo(MongoDatabaseConnection):
         self.reportingdb.monthly_hit_reports.insert_one({
             "date":datetime.datetime.utcnow(),
             "hits":hits})
+
+class FileDBOMongo(MongoDatabaseConnection):
+    def __init__(self, client):
+        super().__init__(client)
+        self.db = self.client[app_settings.DATABASE_MAIN]
+        self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+
+    def add_file(self, bytes_contents, filename, username, kind):
+        """
+        FileDBOMongo.add_file() : adds the contents of a file (app or file) to mongodb
+        Params:
+        - bytes_contents (bytes) : the contents of the file
+        - filename (string) : the file string
+        - username (string) : the owner of the file
+        - kind (string) : the kind of file it is (file|app)
+        Returns:
+        - (boolean) : true on success, false on failure
+        """
+        try:
+            inserted = self.db.files.insert_one({"bytes_contents": bytes_contents,
+                                             "filename": filename,
+                                             "username": username,
+                                             "kind": kind})
+            return True
+        except:
+            return False
+
+    def get_file(self, filename, username, kind):
+        """
+        FileDBOMongo.get_file() : gets the contents of a file (app or file) from mongodb
+        Params:
+        - filename (string) : the file string
+        - username (string) : the owner of the file
+        - kind (string) : the kind of file it is (file|app)
+        Returns:
+        - (bytes) : the contents of the file
+        """
+        try:
+            fileout = self.db.files.find_one({"filename":filename, "username":username, "kind":kind})
+            if fileout:
+                return fileout["bytes_contents"]
+            else:
+                return None
+        except:
+            return None
+        
         
 class AppDBOMongo(MongoDatabaseConnection):
     def __init__(self, client):

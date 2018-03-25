@@ -6,10 +6,11 @@
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 Vagrant.configure(2) do |config|
-  
+  config.vm.boot_timeout = 600
   config.vm.base_mac = "080027880CA6"
 
   config.ssh.shell = "/bin/sh"
+  #config.vm.synced_folder "..", "/home/bigcgi/bigcgi-repo", type: "rsync", disabled: false, rsync__exclude: ".git/"
   config.vm.synced_folder "..", "/home/bigcgi/bigcgi-repo", type: "rsync", disabled: false, rsync__exclude: ".git/", owner: "bigcgi", group: "bigcgi"
   config.vm.synced_folder ".", "/vagrant", type: "rsync", disabled: true, owner: "bigcgi", group: "bigcgi"
 

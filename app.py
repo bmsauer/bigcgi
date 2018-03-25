@@ -25,12 +25,13 @@ import uuid
 import time
 
 from settings import app_settings
-from db.mongodbo import AppDBOMongo
+from db.mongodbo import AppDBOMongo, FileDBOMongo
 from util.request import *
 from apps.admin import admin_app
 from apps.cork import cork_app
 from util.auth import get_cork_instance
 import util.cgi
+from tasks.tasks import sync_file
 
 app_settings.get_logger()
 
@@ -128,6 +129,18 @@ def delete_app_view(appname):
 
     return bottle.template("delete-app",{"title":"Delete App", "current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
+@main_app.get("/create-file")
+def create_file_view():
+    cork = get_cork_instance()
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
+    flash = bottle.request.query.flash or None
+    error = bottle.request.query.error or None
+    user = cork.current_user
+    current_user = user.username
+
+    return bottle.template("create-file",{"title": "Create File", "current_user":current_user, "flash": flash, "error":error, "csrf": get_csrf_token()})
+    
+
 @main_app.post("/delete-app/<appname>")
 def delete_app(appname):
     cork = get_cork_instance()
@@ -173,11 +186,11 @@ def create_app():
         
     upload = bottle.request.files.get('upload')
     
-    with tempfile.NamedTemporaryFile() as temp_storage:
+    with tempfile.NamedTemporaryFile(dir=app_settings.TMP_FILE_STORE) as temp_storage:
         final_path = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user),name)
         save_path = temp_storage.name
         upload.save(save_path, overwrite=True) # appends upload.filename automatically
-        status = os.system("sudo script/moveprog.tcl {} {} {}".format(current_user, save_path, final_path))
+        status = os.system("sudo script/movefile.tcl {} {} {} {}".format(current_user, save_path, final_path, "500"))
         
     error=None
     flash="Successfully created app."
@@ -188,6 +201,37 @@ def create_app():
     if flash:
         app_settings.logger.info("app created", extra={"actor":current_user,"action":"created app", "object":name})
         bottle.redirect("/dashboard?flash={}".format(flash))
+
+@main_app.post("/create-file")
+def create_file():
+    cork = get_cork_instance()
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
+    user = cork.current_user
+    current_user = user.username
+
+    name = bottle.request.forms.get('name')
+    if not name:
+        bottle.redirect("/dashboard?error={}".format("File must have a name."))
+        return
+    if "/" in name or ".." in name:
+        error="Invalid file name: cannot contain .. or /"
+        bottle.redirect("/dashboard?error={}".format(error))
+
+    upload = bottle.request.files.get('upload')
+    db = FileDBOMongo(app_settings.get_database())
+    success = db.add_file(upload.file.read(), name, current_user, "file")
+    sync_file.apply_async(args=[name, current_user, "file"], kwargs={}, queue='bigcgi_instance_1')
+    if not success:
+        error = "Failed to upload file."
+        app_settings.logger.error("error uploading file", extra={
+            "actor":current_user,"action":"created file", "object":name})
+        bottle.redirect("/dashboard?error={}".format(error))
+    else:
+        flash = "Successfully uploaded file."
+        app_settings.logger.info("file created", extra={
+            "actor":current_user,"action":"created file", "object":name})
+        bottle.redirect("/dashboard?flash={}".format(flash))
+    
 
 @main_app.get("/logs/<appname>")
 def get_app_logs(appname):

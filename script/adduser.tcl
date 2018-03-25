@@ -35,11 +35,19 @@ if { [catch { exec {*}$command } msg] } {
     exit 2
 }
 if { [catch { exec mkdir /home/$username/public_html } msg ] } {
-    puts "Error adding home directory: $msg"
+    puts "Error adding public_html directory: $msg"
     exit 2
 }
 if { [catch { exec chown $username:$username /home/$username/public_html } msg ] } {
-    puts "Error changing home dir owner: $msg"
+    puts "Error changing public_html dir owner: $msg"
+    exit 2
+}
+if { [catch { exec mkdir /home/$username/files } msg ] } {
+    puts "Error adding files directory: $msg"
+    exit 2
+}
+if { [catch { exec chown $username:$username /home/$username/files } msg ] } {
+    puts "Error changing files dir owner: $msg"
     exit 2
 }
 if { [catch { exec chmod -R 711 /home/$username } msg ] } {
