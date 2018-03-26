@@ -43,7 +43,7 @@ class AppSettings(object):
     
     CGI_BASE_PATH_TEMPLATE = "/home/{}/public_html"
     FILE_BASE_PATH_TEMPLATE = "/home/{}/files"
-    TMP_FILE_STORE = "/var/bigcgi"
+    TMP_FILE_STORE = os.environ["BIGCGI_TMP_FILE_STORE"]
     
     BIGCGI_INSTANCE_ID = os.environ["BIGCGI_INSTANCE_ID"]
     BIGCGI_TOTAL_INSTANCES = os.environ["BIGCGI_TOTAL_INSTANCES"]

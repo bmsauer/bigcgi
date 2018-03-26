@@ -14,13 +14,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 """
-import tempfile
-import os
 from celery import Celery
 from celery.schedules import crontab
 
 from db.mongodbo import ReportingDBOMongo, FileDBOMongo
 from settings import app_settings
+from util import filesys
 
 app_settings.get_logger()
 
@@ -48,31 +47,12 @@ def generate_monthly_report():
 
 @app.task
 def sync_file(filename, username, kind):
-    try:
-        os.mkdir(app_settings.FILE_BASE_PATH_TEMPLATE.format(username), mode=711)
-    except FileNotFoundError:
-        app_settings.logger.warning("Creating files path failed: home directory doesn't exist", extra={"actor":"INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action":"create file directory", "object":username})
-    except FileExistsError:
-        pass
-    try:
-        os.mkdir(app_settings.CGI_BASE_PATH_TEMPLATE.format(username), mode=711)
-    except FileNotFoundError:
-        app_settings.logger.warning("Creating cgi path failed: home directory doesn't exist", extra={"actor":"INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action":"create cgi directory", "object":username})
-    except FileExistsError:
-        pass   
+    success = filesys.check_user_directories(username)
+    if not success:
+        return
     db = FileDBOMongo(app_settings.get_database())
     sync_file = db.get_file(filename, username, kind)
     if sync_file:
-        with tempfile.NamedTemporaryFile(dir=app_settings.TMP_FILE_STORE) as temp_storage:
-            temp_storage.write(sync_file)
-            if kind == "file":
-                final_path = os.path.join(app_settings.FILE_BASE_PATH_TEMPLATE.format(username), filename)
-                permissions = "400"
-            elif kind == "app":
-                final_path = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(username), filename)
-                permissions = "700"
-            status = os.system("sudo script/movefile.tcl {} {} {} {}".format(username, tmp_storage.name, final_path, permissions))
-                
-            app_settings.logger.info("file synced", extra={"actor":"INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action": "sync file", "object": username+"/"+filename})
+        filesys.move_file_contents(filename, username, kind, file_contents)
     else: #file could have been deleted before task executed
         app_settings.logger.warning("filed to sync file: does not exist in db", extra={"actor":"INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action":"sync file", "object": username+"/"+filename})

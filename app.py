@@ -218,9 +218,15 @@ def create_file():
         bottle.redirect("/dashboard?error={}".format(error))
 
     upload = bottle.request.files.get('upload')
+    if upload.content_length > 1000000: #cap uploads to 1Mb
+        error = "Failed to upload file: exceeded maximum of 1Mb"
+        app_settings.logger.info("user attempted large upload", extra={
+            "actor":current_user,"action":"created file", "object":name})
+        bottle.redirect("/dashboard?error={}".format(error))
+        
     db = FileDBOMongo(app_settings.get_database())
     success = db.add_file(upload.file.read(), name, current_user, "file")
-    sync_file.apply_async(args=[name, current_user, "file"], kwargs={}, queue='bigcgi_instance_1')
+    sync_file.apply_async(args=[name, current_user, "file"], kwargs={}, queue='bigcgi_instance_' + str(app_settings.BIGCGI_INSTANCE_ID))
     if not success:
         error = "Failed to upload file."
         app_settings.logger.error("error uploading file", extra={

@@ -19,6 +19,8 @@ Things to look into: fcgiwrap
 
 Dev mongo shell: mongo --username bigcgi --password bigcgi --authenticationDatabase bigcgi-main bigcgi-main
 
+problems installing pycrypto?  install it system-wide first, then install in virtualenv
+
 
 DEVLOG: 
 
