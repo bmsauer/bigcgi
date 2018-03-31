@@ -53,6 +53,6 @@ def sync_file(filename, username, kind):
     db = FileDBOMongo(app_settings.get_database())
     sync_file = db.get_file(filename, username, kind)
     if sync_file:
-        filesys.move_file_contents(filename, username, kind, file_contents)
+        filesys.move_file_contents(filename, username, kind, sync_file)
     else: #file could have been deleted before task executed
         app_settings.logger.warning("filed to sync file: does not exist in db", extra={"actor":"INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action":"sync file", "object": username+"/"+filename})

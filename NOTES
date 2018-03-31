@@ -15,12 +15,17 @@ azure functions, ibm openwhisk, graph.cool, openFaas, fx, now
 To make package of custom apache24: build port, then run "make package".  Package tar will be in
 ./work/pkg
 
-Things to look into: fcgiwrap
+Things to look into: fcgiwrap / fcgi over stdin/out instead of sockets
+
+Libraries/Docs:  Wapps framework tcl
 
 Dev mongo shell: mongo --username bigcgi --password bigcgi --authenticationDatabase bigcgi-main bigcgi-main
 
-problems installing pycrypto?  install it system-wide first, then install in virtualenv
+bottle-cork needs to be installed from github source;  python3 setup.py install.  removes broken pycrypto dependency
 
+GETTING THE WORD OUT
+stackshare
+reddit/hn
 
 DEVLOG: 
 

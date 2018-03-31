@@ -101,10 +101,13 @@ class FileDBOMongo(MongoDatabaseConnection):
         - (boolean) : true on success, false on failure
         """
         try:
-            inserted = self.db.files.insert_one({"bytes_contents": bytes_contents,
-                                             "filename": filename,
-                                             "username": username,
-                                             "kind": kind})
+            self.db.files.update_one({
+                "username":username,
+                "filename":filename,
+            },
+            {
+                "$set": {"kind":kind, "bytes_contents": bytes_contents}
+            }, upsert=True)
             return True
         except:
             return False
