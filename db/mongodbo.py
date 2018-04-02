@@ -130,7 +130,20 @@ class FileDBOMongo(MongoDatabaseConnection):
                 return None
         except:
             return None
-        
+
+    def get_user_files(self, username):
+        """
+        FileDBOMongo.get_summary() - gets all files for a user
+        Params:
+        - username (string) : the name of the user
+        Returns:
+        - (list) : a list of filenames
+        """
+        files = self.db.files.find({"username":username}).sort("filename", 1)
+        return_files = []
+        for userfile in files:
+            return_files.append(userfile["filename"])
+        return return_files
         
 class AppDBOMongo(MongoDatabaseConnection):
     def __init__(self, client):

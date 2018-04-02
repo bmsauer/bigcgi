@@ -20,6 +20,7 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 %if not get("apps",None):
 <p>You have no apps!</p>
 %else:
+<h2>Apps</h2>
 %for app in apps:
 <div class="row app-row">
   <div class="two-thirds column alpha">
@@ -56,7 +57,25 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
   </div>
 </div>
 %end
-
+%end
+%if not get("files",None):
+<p>You have no files!</p>
+%else:
+<h2>Files</h2>
+%for file in files:
+<div class="row file-row">
+  <div class="eleven columns">
+    <div class="file-container">
+      <h4>{{file}}</h4>
+    </div>
+  </div>
+  <div class="one column">
+    <div class="action-container">
+      <a href="/delete-file/{{file}}"><img src="static/img/trash-4x.png" alt="Delete" title="Delete"/></a>
+    </div>
+  </div>
+</div>
+%end
 %end
 
 

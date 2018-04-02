@@ -83,7 +83,7 @@ def check_security(payload):
     mode = os.stat(directory).st_mode
     mode_stripped = stat.S_IMODE(mode)
     permissions = oct(mode_stripped)
-    if permissions[-3:] != "711":
+    if permissions[-3:] != "500":
         raise SecurityException('Target directory has invalid permissions')
     #15)Does the target CGI/SSI program exist?
     script = "/home/{}/public_html/{}".format(username, script_name)
@@ -92,7 +92,7 @@ def check_security(payload):
     #16)Is the target CGI/SSI program NOT writable by anyone else?
     mode = os.stat(script).st_mode
     permissions = oct(stat.S_IMODE(mode))
-    if permissions[-3:] != "711":
+    if permissions[-3:] != "500":
         raise SecurityException('Target script has invalid permissions')
     #17)Is the target CGI/SSI program NOT setuid or setgid?
     if script == "setgid" or script == "setuid":
@@ -143,15 +143,15 @@ if __name__ == "__main__":
         sys.exit(0)
         
     except subprocess.TimeoutExpired as e:
-        print("CGI process timeout.")
+        print("CGI process timeout.", file=sys.stderr)
         os.chdir(oldpath)
         sys.exit(1)
     except KeyError as e: #user does not exist
-        print("Invalid user.")
+        print("Invalid user.", file=sys.stderr)
         os.chdir(oldpath)
         sys.exit(1)
     except Exception as e:
-        print("An unknown error occurred: " + str(e))
+        print("An unknown error occurred: " + str(e), file=sys.stderr)
         os.chdir(oldpath)
         sys.exit(1)
     

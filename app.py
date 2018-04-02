@@ -95,7 +95,10 @@ def dashboard():
     current_user = user.username
     db = AppDBOMongo(app_settings.get_database())
     apps = db.get_summary(current_user)
-    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error, "csrf":get_csrf_token()})
+    file_db = FileDBOMongo(app_settings.get_database())
+    files = file_db.get_user_files(current_user)
+    
+    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "files": files, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
 @main_app.get("/create-app")
 def create_app_view():
@@ -248,7 +251,7 @@ def get_app_logs(appname):
 
     db = AppDBOMongo(app_settings.get_database())
     logs = db.get_app_logs(current_user, appname)
-    return bottle.template("app-logs", {"title":"Logs for " + appname, "logs":logs})
+    return bottle.template("app-logs", {"title":"Logs for " + appname,"current_user":current_user, "logs":logs})
     
 @main_app.get("/login")
 def login_view():
@@ -334,11 +337,12 @@ def bigcgi_run(username,appname):
         output = bottle.template("app-error", {"output":output})
         headers = {"Status": 500}
     else:
-        error_logs = error.split("\n")
-        error_logs = [e for e in error_logs if e]
-        if error_logs:
-            db.app_log(username, appname, error_logs)
         headers, output = util.cgi.parse_output(output)
+        
+    error_logs = error.split("\n")
+    error_logs = [e for e in error_logs if e]
+    if error_logs:
+        db.app_log(username, appname, error_logs)
         
     content_type = headers.get("Content-Type", "text/html")
     access_control_allow_origin = headers.get("Access-Control-Allow-Origin", "*")
