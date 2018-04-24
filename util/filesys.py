@@ -69,4 +69,27 @@ def move_file(username, tmpfilename, final_path, permissions):
         app_settings.logger.info("file synced", extra={"actor":"INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action": "sync file", "object": final_path})
         return True
 
+def delete_file(username, filename, kind):
+    """
+    delete_file() : delete the file using sudo script
+    Params:
+    - username (string) : the name of the user
+    - filename (string) : the name of the file
+    - kind (string) : type of file (app|file)
+    Returns:
+    - (boolean) : True on success, False on failure
+    """
+    if kind == "app":
+        filepath = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(username), filename)
+    elif kind == "file":
+        filepath = os.path.join(app_settings.FILE_BASE_PATH_TEMPLATE.format(username), filename)
+    status = os.system("sudo script/delprog.tcl {}".format(filepath))
+    if status != 0:
+        app_settings.logger.error("failed to delete file", extra={"actor": "INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action": "delete file", "object": filepath})
+        return False
+    else:
+        app_settings.logger.info("deleted file", extra={"actor": "INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action": "delete file", "object": filepath})
+        return True
+        
+                       
     

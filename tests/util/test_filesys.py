@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, ANY
 import os
 import tempfile
 
@@ -6,7 +6,7 @@ from util.test import NamedTemporaryFileMock
 
 os.mkdir = MagicMock()
 os.system = MagicMock()
-tempfile.NamedTemporaryFile = NamedTemporaryFileMock
+#tempfile.NamedTemporaryFile = NamedTemporaryFileMock
 
 import util.filesys
 
@@ -23,11 +23,11 @@ def test_move_file_contents():
     
     with patch("util.filesys.move_file",MagicMock(return_value=True)):
         result = util.filesys.move_file_contents("filename", "testuser", "file", b"123")
-        util.filesys.move_file.assert_called_with("testuser", "file1", "/home/testuser/files/filename", "400")
+        util.filesys.move_file.assert_called_with("testuser", ANY, "/home/testuser/files/filename", "400")
         assert result == True
 
         result = util.filesys.move_file_contents("filename", "testuser", "app", b"123")
-        util.filesys.move_file.assert_called_with("testuser", "file1", "/home/testuser/public_html/filename", "500")
+        util.filesys.move_file.assert_called_with("testuser", ANY, "/home/testuser/public_html/filename", "500")
         assert result == True
 
 def test_move_file():
@@ -35,3 +35,10 @@ def test_move_file():
     assert util.filesys.move_file("testuser", "tmpfilename", "path", "400") == False
     os.system = MagicMock(return_value=0)
     assert util.filesys.move_file("testuser", "tmpfilename", "path", "400") == True
+
+def test_delete_file():
+    os.system = MagicMock(return_value=1)
+    assert util.filesys.delete_file("testuser", "testfile", "file") == False
+    os.system = MagicMock(return_value=0)
+    assert util.filesys.delete_file("testuser", "testfile", "app") == True
+

@@ -31,7 +31,7 @@ from apps.admin import admin_app
 from apps.cork import cork_app
 from util.auth import get_cork_instance
 import util.cgi
-from tasks.tasks import sync_file
+from tasks.tasks import sync_file, delete_file
 
 app_settings.get_logger()
 
@@ -43,6 +43,7 @@ main_app.install(require_csrf)
 #----------------------------------------------------
 
 @main_app.error(500)
+@main_app.error(405)
 @main_app.error(404)
 @main_app.error(403)
 @main_app.error(400)
@@ -60,7 +61,10 @@ def error(error):
                                   "action":"errored",
                                   "object":obj
                               })
-    return bottle.template("error", {"title":error.status, "message":error.body})
+    if actor == "anonymous":
+        return bottle.template("error", {"title":error.status, "message":error.body})
+    else:
+        return bottle.template("error", {"title":error.status, "message":error.body, "current_user": actor})
     
 #----------------------------------------------------
 # STATIC FILES
@@ -151,13 +155,41 @@ def delete_app(appname):
     user = cork.current_user
     current_user = user.username
 
-    app_location = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user), appname)
     db = AppDBOMongo(app_settings.get_database())
-    db.delete(appname, current_user)
-    os.system("sudo script/delprog.tcl {}".format(app_location))
-    app_settings.logger.info("app deleted", extra={"actor":current_user,"action":"deleted app", "object":appname})
-    bottle.redirect("/dashboard?flash={}".format("Successful delete."))
+    success = db.delete(appname, current_user)
+    if not success:
+        error = "Failed to delete app."
+        app_settings.logger.error("error deleteing app", extra={
+            "actor": current_user, "action": "delete app", "object": appname})
+        bottle.redirect("/dashboard?error={}".format(error))
+    else:
+        for xx in range(0, int(app_settings.BIGCGI_TOTAL_INSTANCES)):
+            delete_file.apply_async(args=[current_user, appname, "app"], kwargs={}, queue='bigcgi_instance_' + str(xx))
+        app_settings.logger.info("app deleted", extra={
+            "actor": current_user, "action": "delete app", "object": appname})
+        bottle.redirect("/dashboard?flash={}".format("Successful delete."))
 
+@main_app.post("/delete-file/<filename>")
+def del_file(filename):
+    cork = get_cork_instance()
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
+    user = cork.current_user
+    current_user = user.username
+
+    db = FileDBOMongo(app_settings.get_database())
+    success = db.delete_file(filename, current_user, "file")
+    if not success:
+        error = "Failed to delete file."
+        app_settings.logger.error("error deleteing file", extra={
+            "actor": current_user, "action": "delete file", "object": filename})
+        bottle.redirect("/dashboard?error={}".format(error))
+    else:
+        for xx in range(0, int(app_settings.BIGCGI_TOTAL_INSTANCES)):
+            delete_file.apply_async(args=[current_user, filename, "file"], kwargs={}, queue='bigcgi_instance_' + str(xx))
+        app_settings.logger.info("file deleted", extra={
+            "actor": current_user, "action": "delete file", "object": filename})
+        bottle.redirect("/dashboard?flash={}".format("Successful delete."))
+        
 @main_app.post("/secure-app/<appname>/<security_setting:int>")
 def secure_app(appname, security_setting):
     cork = get_cork_instance()
@@ -188,21 +220,26 @@ def create_app():
         bottle.redirect("/dashboard?error={}".format(error))
         
     upload = bottle.request.files.get('upload')
-    
-    with tempfile.NamedTemporaryFile(dir=app_settings.TMP_FILE_STORE) as temp_storage:
-        final_path = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user),name)
-        save_path = temp_storage.name
-        upload.save(save_path, overwrite=True) # appends upload.filename automatically
-        status = os.system("sudo script/movefile.tcl {} {} {} {}".format(current_user, save_path, final_path, "500"))
-        
-    error=None
-    flash="Successfully created app."
-    db = AppDBOMongo(app_settings.get_database())
-    db.create(name, current_user)
-    if error:
+    if upload.content_length > 1000000: #cap uploads to 1Mb
+        error = "Failed to upload app: exceeded maximum of 1Mb"
+        app_settings.logger.info("user attempted large upload", extra={
+            "actor":current_user,"action":"created file", "object":name})
         bottle.redirect("/dashboard?error={}".format(error))
-    if flash:
-        app_settings.logger.info("app created", extra={"actor":current_user,"action":"created app", "object":name})
+    db = FileDBOMongo(app_settings.get_database())
+    success = db.add_file(upload.file.read(), name, current_user, "app")
+    if not success:
+        error = "Failed to upload app."
+        app_settings.logger.error("error uploading app", extra={
+            "actor":current_user,"action":"created app", "object":name})
+        bottle.redirect("/dashboard?error={}".format(error))
+    else:
+        for xx in range(0, int(app_settings.BIGCGI_TOTAL_INSTANCES)):
+            sync_file.apply_async(args=[name, current_user, "app"], kwargs={}, queue='bigcgi_instance_' + str(xx))
+        flash = "Successfully uploaded app."
+        db = AppDBOMongo(app_settings.get_database())
+        db.create(name, current_user)
+        app_settings.logger.info("file created", extra={
+            "actor":current_user,"action":"created app", "object":name})
         bottle.redirect("/dashboard?flash={}".format(flash))
 
 @main_app.post("/create-file")
@@ -229,13 +266,14 @@ def create_file():
         
     db = FileDBOMongo(app_settings.get_database())
     success = db.add_file(upload.file.read(), name, current_user, "file")
-    sync_file.apply_async(args=[name, current_user, "file"], kwargs={}, queue='bigcgi_instance_' + str(app_settings.BIGCGI_INSTANCE_ID))
     if not success:
         error = "Failed to upload file."
         app_settings.logger.error("error uploading file", extra={
             "actor":current_user,"action":"created file", "object":name})
         bottle.redirect("/dashboard?error={}".format(error))
     else:
+        for xx in range(0, int(app_settings.BIGCGI_TOTAL_INSTANCES)):
+            sync_file.apply_async(args=[name, current_user, "file"], kwargs={}, queue='bigcgi_instance_' + str(xx))
         flash = "Successfully uploaded file."
         app_settings.logger.info("file created", extra={
             "actor":current_user,"action":"created file", "object":name})
@@ -310,12 +348,7 @@ def bigcgi_run(username,appname):
             bottle.abort(401, "Authorization failed.")
     else:
         creds = None
-    #url = "http://internal.bigcgi.com/~{}/{}".format(username, appname)
-    #if bottle.request.method == "GET":
-    #    response = requests.get(url, params=dict(bottle.request.query))
-    #elif bottle.request.method == "POST":
-    #    response = requests.post(url,data=dict(bottle.request.forms)) #TODO: this should be changed to body
-    #if response.status_code < 300:
+        
     start_time = time.time()
     output, error, return_value = util.cgi.run_cgi(
         appname,
@@ -334,7 +367,7 @@ def bigcgi_run(username,appname):
     db.inc_hits(username, appname)
     db.inc_millisecs(username, appname, elapsed*1000)
     if return_value == 1:
-        output = bottle.template("app-error", {"output":output})
+        output = bottle.template("app-error", {"output":output, "error": error})
         headers = {"Status": 500}
     else:
         headers, output = util.cgi.parse_output(output)

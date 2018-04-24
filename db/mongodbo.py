@@ -112,6 +112,22 @@ class FileDBOMongo(MongoDatabaseConnection):
         except:
             return False
 
+    def delete_file(self, filename, username, kind):
+        """
+        FileDBOMongo.delete_file() : remove a file from mongodb
+        Params:
+        - filename (string) : the name of the file
+        - username (string) : the owner of the file
+        - kind (string) : kind of file it is (app|file)
+        Returns:
+        - (boolean) : true on success, false on failure
+        """
+        try:
+            self.db.files.delete_one({"username": username, "filename": filename, "kind": kind})
+            return True
+        except:
+            return False
+    
     def get_file(self, filename, username, kind):
         """
         FileDBOMongo.get_file() : gets the contents of a file (app or file) from mongodb
@@ -139,7 +155,7 @@ class FileDBOMongo(MongoDatabaseConnection):
         Returns:
         - (list) : a list of filenames
         """
-        files = self.db.files.find({"username":username}).sort("filename", 1)
+        files = self.db.files.find({"username":username, "kind": "file"}).sort("filename", 1)
         return_files = []
         for userfile in files:
             return_files.append(userfile["filename"])
@@ -183,10 +199,14 @@ class AppDBOMongo(MongoDatabaseConnection):
         - appname (string) : the name of the app, which will be the name of the file
         - username (string) : the name of the user this app is for
         Returns:
-        - Nothing
+        - (boolean) : True on success, False on failure
         """
-        self.db.apps.delete_one({"username":username, "name":appname})
-        self.db.users.update_one({"username":username}, {"$pull":{"apps": appname}})
+        try:
+            self.db.apps.delete_one({"username":username, "name":appname})
+            self.db.users.update_one({"username":username}, {"$pull":{"apps": appname}})
+            return True
+        except:
+            return False
 
     def get_summary(self, username):
         """

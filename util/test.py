@@ -24,6 +24,8 @@ class NamedTemporaryFileMock(object):
         def __init__(self):
             self.write = MagicMock()
             self.name = "file1"
+        def close(self):
+            pass
             
     def __init__(self, *args, **kwargs):
         self.args = args
@@ -33,6 +35,8 @@ class NamedTemporaryFileMock(object):
         return self.MockFile()
     def __exit__(self, *args, **kwargs):
         pass
+    
+    
 """      
 class AppDBOMongoMock(object):
     APPS = []

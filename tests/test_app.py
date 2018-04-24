@@ -130,9 +130,12 @@ def test_create_app():
       
     with boddle(params={"name":"app3"}):
         with patch('bottle.BaseRequest.files') as mock_files:
-            mock_files.return_value = {"upload":MagicMock()}
+            mock_upload = MagicMock()
+            mock_upload.content_length = 1000
+            mock_upload.file.read.return_value = b"file contents"
+            mock_files.get.return_value = mock_upload
             response = create_app()
-            bottle.redirect.assert_called_with("/dashboard?flash=Successfully created app.")
+            bottle.redirect.assert_called_with("/dashboard?flash=Successfully uploaded app.")
             client = app_settings.get_database()
             last_inserted = client[app_settings.DATABASE_MAIN].apps.find_one({"name":"app3"})
             assert last_inserted != None

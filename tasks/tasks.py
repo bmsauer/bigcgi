@@ -56,3 +56,9 @@ def sync_file(filename, username, kind):
         filesys.move_file_contents(filename, username, kind, sync_file)
     else: #file could have been deleted before task executed
         app_settings.logger.warning("filed to sync file: does not exist in db", extra={"actor":"INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action":"sync file", "object": username+"/"+filename})
+
+@app.task
+def delete_file(filename, username, kind):
+    success = filesys.delete_file(filename, username, kind)
+    if not success:
+        app_settings.logger.warning("failed to delete file", extra={"actor": "INSTANCE " + app_settings.BIGCGI_INSTANCE_ID, "action": "delete file", "object": username+"/"+filename})
