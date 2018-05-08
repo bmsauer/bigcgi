@@ -41,14 +41,14 @@ def move_file_contents(filename, username, kind, file_contents):
     """
     with tempfile.NamedTemporaryFile(dir=app_settings.TMP_FILE_STORE) as temp_storage:
         temp_storage.write(file_contents)
+        temp_storage.flush()
+        os.fsync(temp_storage.fileno())
+        permissions = "500"
         if kind == "file":
             final_path = os.path.join(app_settings.FILE_BASE_PATH_TEMPLATE.format(username), filename)
-            permissions = "400"
         elif kind == "app":
             final_path = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(username), filename)
-            permissions = "500"
         return move_file(username, temp_storage.name, final_path, permissions)
-        
 
 def move_file(username, tmpfilename, final_path, permissions):
     """

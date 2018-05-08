@@ -1,7 +1,9 @@
 TODO LIST:
   - backup server process
-  - fleet management (jails + ansible + supervisor?)
+  - fleet management (jails + ansible + supervisor? bsdeploy? )
+  - tool to run code on all servers for all users
   - BUSINESS/MARKETING
+    - value prop and homepage messaging
     - tutorial
     - more resources and docs
     - performance benchmark

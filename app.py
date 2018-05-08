@@ -17,7 +17,6 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 
 import bottle
 from beaker.middleware import SessionMiddleware
-from cork import AuthException
 import requests
 import os
 import tempfile
@@ -49,22 +48,15 @@ main_app.install(require_csrf)
 @main_app.error(400)
 def error(error):
     cork = get_cork_instance()
-    try:
-        user = cork.current_user
-        actor = user.username
-    except AuthException:
-        actor = "anonymous"
+    current_user = get_current_user(cork)
     obj = str(bottle.request.path) + "?" + str(bottle.request.query_string) 
     app_settings.logger.error("{} - {}".format(error.status, error.body),
                               extra={
-                                  "actor":actor,
+                                  "actor":current_user if current_user else "anonymous",
                                   "action":"errored",
                                   "object":obj
                               })
-    if actor == "anonymous":
-        return bottle.template("error", {"title":error.status, "message":error.body})
-    else:
-        return bottle.template("error", {"title":error.status, "message":error.body, "current_user": actor})
+    return bottle.template("error", {"title":error.status, "message":error.body, "current_user": current_user})
     
 #----------------------------------------------------
 # STATIC FILES
@@ -80,80 +72,59 @@ def server_static(filepath):
 @main_app.route("/")
 def index():
     cork = get_cork_instance()
-    flash = bottle.request.params.flash or None
-    error = bottle.request.params.error or None
-    try:
-        user = cork.current_user
-        current_user = user.username
-    except AuthException as e:
-        current_user = None
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("index",{"current_user":current_user, "flash":flash, "error":error})
 
 @main_app.route("/dashboard")
 def dashboard():
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect='/?error=You are not authorized to access this page.')
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     db = AppDBOMongo(app_settings.get_database())
     apps = db.get_summary(current_user)
     file_db = FileDBOMongo(app_settings.get_database())
     files = file_db.get_user_files(current_user)
-    
     return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "files": files, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
 @main_app.get("/create-app")
 def create_app_view():
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
 @main_app.get("/upgrade-app/<appname>")
 def upgrade_app_view(appname):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
-    
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("upgrade-app",{"title":"Upgrade App","current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
 @main_app.get("/delete-app/<appname>")
 def delete_app_view(appname):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
-
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("delete-app",{"title":"Delete App", "current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
 @main_app.get("/create-file")
 def create_file_view():
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
-
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("create-file",{"title": "Create File", "current_user":current_user, "flash": flash, "error":error, "csrf": get_csrf_token()})
-    
 
 @main_app.post("/delete-app/<appname>")
 def delete_app(appname):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     db = AppDBOMongo(app_settings.get_database())
     success = db.delete(appname, current_user)
@@ -173,8 +144,7 @@ def delete_app(appname):
 def del_file(filename):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     db = FileDBOMongo(app_settings.get_database())
     success = db.delete_file(filename, current_user, "file")
@@ -194,8 +164,7 @@ def del_file(filename):
 def secure_app(appname, security_setting):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     db = AppDBOMongo(app_settings.get_database())
     db.secure_app(current_user, appname, security_setting)
@@ -208,8 +177,7 @@ def secure_app(appname, security_setting):
 def create_app():
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     name = bottle.request.forms.get('name')
     if not name:
@@ -246,8 +214,7 @@ def create_app():
 def create_file():
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     name = bottle.request.forms.get('name')
     if not name:
@@ -284,8 +251,7 @@ def create_file():
 def get_app_logs(appname):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     db = AppDBOMongo(app_settings.get_database())
     logs = db.get_app_logs(current_user, appname)
@@ -293,35 +259,48 @@ def get_app_logs(appname):
     
 @main_app.get("/login")
 def login_view():
-    return bottle.template("login", {"title":"Login", "csrf":get_csrf_token()})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("login", {"title":"Login", "csrf":get_csrf_token(), "current_user": current_user})
 
 @main_app.get("/docs")
 def docs_view():
-    return bottle.template("docs", {"title":"Documentation"})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("docs", {"title":"Documentation", "current_user": current_user})
 
 @main_app.get("/development")
 def development_view():
-    return bottle.template("development", {"title":"Development"})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("development", {"title":"Development", "current_user": current_user})
 
 @main_app.get("/register")
 def register_view():
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    return bottle.template("register", {"title":"Register", "csrf":get_csrf_token(), "flash":flash, "error":error})
+    cork = get_cork_instance()
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
+    return bottle.template("register", {"title":"Register", "csrf":get_csrf_token(), "flash":flash, "error":error, "current_user": current_user})
 
 @main_app.get("/pricing")
 def pricing_view():
-    return bottle.template("pricing", {"title":"Pricing"})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("pricing", {"title":"Pricing", "current_user": current_user})
 
 @main_app.get("/pricing")
 def pricing_view():
-    return bottle.template("pricing", {"title":"Pricing"})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("pricing", {"title":"Pricing", "current_user": current_user})
 
 @main_app.get("/terms")
 def terms_view():
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
     with open("TERMS", "r") as terms_file:
         terms = terms_file.read()
-    return bottle.template("terms", {"title": "Terms of Service", "terms":terms})
+    return bottle.template("terms", {"title": "Terms of Service", "terms":terms, "current_user": current_user})
 
 #----------------------------------------------------
 # API

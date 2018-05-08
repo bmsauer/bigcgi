@@ -70,7 +70,6 @@ if { ![file exists /home/bigcgi/bigcgi-repo/logs] } {
 } else {
     puts "Logs directory already exists."
 }
-exec chown bigcgi:bigcgi /home/bigcgi/bigcgi-repo/logs
 
 #---------------------------
 #  make tmp dir
@@ -80,8 +79,14 @@ if {! [file exists /tmp/bigcgi] } {
 } else {
     puts "Tmp dirctory already exists."
 }
-exec chown bigcgi:bigcgi /tmp/bigcgi
-exec chmod 700 /tmp/bigcgi
+
+#---------------------------
+#  lock down directories
+#---------------------------
+exec chown -R bigcgi:bigcgi /home/bigcgi/bigcgi-repo
+exec chmod -R 700 /home/bigcgi/bigcgi-repo
+exec chown -R bigcgi:bigcgi /tmp/bigcgi
+exec chmod -R 700 /tmp/bigcgi
 
 #---------------------------
 #  apache config
