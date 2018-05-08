@@ -17,7 +17,6 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 
 import bottle
 from beaker.middleware import SessionMiddleware
-from cork import AuthException
 import requests
 import os
 import tempfile
@@ -25,12 +24,13 @@ import uuid
 import time
 
 from settings import app_settings
-from db.mongodbo import AppDBOMongo
+from db.mongodbo import AppDBOMongo, FileDBOMongo
 from util.request import *
 from apps.admin import admin_app
 from apps.cork import cork_app
 from util.auth import get_cork_instance
 import util.cgi
+from tasks.tasks import sync_file, delete_file
 
 app_settings.get_logger()
 
@@ -42,24 +42,21 @@ main_app.install(require_csrf)
 #----------------------------------------------------
 
 @main_app.error(500)
+@main_app.error(405)
 @main_app.error(404)
 @main_app.error(403)
 @main_app.error(400)
 def error(error):
     cork = get_cork_instance()
-    try:
-        user = cork.current_user
-        actor = user.username
-    except AuthException:
-        actor = "anonymous"
+    current_user = get_current_user(cork)
     obj = str(bottle.request.path) + "?" + str(bottle.request.query_string) 
     app_settings.logger.error("{} - {}".format(error.status, error.body),
                               extra={
-                                  "actor":actor,
+                                  "actor":current_user if current_user else "anonymous",
                                   "action":"errored",
                                   "object":obj
                               })
-    return bottle.template("error", {"title":error.status, "message":error.body})
+    return bottle.template("error", {"title":error.status, "message":error.body, "current_user": current_user})
     
 #----------------------------------------------------
 # STATIC FILES
@@ -75,79 +72,99 @@ def server_static(filepath):
 @main_app.route("/")
 def index():
     cork = get_cork_instance()
-    flash = bottle.request.params.flash or None
-    error = bottle.request.params.error or None
-    try:
-        user = cork.current_user
-        current_user = user.username
-    except AuthException as e:
-        current_user = None
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("index",{"current_user":current_user, "flash":flash, "error":error})
 
 @main_app.route("/dashboard")
 def dashboard():
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect='/?error=You are not authorized to access this page.')
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     db = AppDBOMongo(app_settings.get_database())
     apps = db.get_summary(current_user)
-    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "flash":flash, "error":error, "csrf":get_csrf_token()})
+    file_db = FileDBOMongo(app_settings.get_database())
+    files = file_db.get_user_files(current_user)
+    return bottle.template("dashboard",{"title":"Dashboard","current_user":current_user, "apps":apps, "files": files, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
 @main_app.get("/create-app")
 def create_app_view():
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("create-app",{"title":"Create App","current_user":current_user, "flash":flash, "error":error, "csrf":get_csrf_token()})
 
 @main_app.get("/upgrade-app/<appname>")
 def upgrade_app_view(appname):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
-    
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("upgrade-app",{"title":"Upgrade App","current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
 
 @main_app.get("/delete-app/<appname>")
 def delete_app_view(appname):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    user = cork.current_user
-    current_user = user.username
-
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
     return bottle.template("delete-app",{"title":"Delete App", "current_user":current_user, "flash":flash, "error":error, "appname":appname, "csrf":get_csrf_token()})
+
+@main_app.get("/create-file")
+def create_file_view():
+    cork = get_cork_instance()
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
+    return bottle.template("create-file",{"title": "Create File", "current_user":current_user, "flash": flash, "error":error, "csrf": get_csrf_token()})
 
 @main_app.post("/delete-app/<appname>")
 def delete_app(appname):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
-    app_location = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user), appname)
     db = AppDBOMongo(app_settings.get_database())
-    db.delete(appname, current_user)
-    os.system("sudo script/delprog.tcl {}".format(app_location))
-    app_settings.logger.info("app deleted", extra={"actor":current_user,"action":"deleted app", "object":appname})
-    bottle.redirect("/dashboard?flash={}".format("Successful delete."))
+    success = db.delete(appname, current_user)
+    if not success:
+        error = "Failed to delete app."
+        app_settings.logger.error("error deleteing app", extra={
+            "actor": current_user, "action": "delete app", "object": appname})
+        bottle.redirect("/dashboard?error={}".format(error))
+    else:
+        for xx in range(0, int(app_settings.BIGCGI_TOTAL_INSTANCES)):
+            delete_file.apply_async(args=[current_user, appname, "app"], kwargs={}, queue='bigcgi_instance_' + str(xx))
+        app_settings.logger.info("app deleted", extra={
+            "actor": current_user, "action": "delete app", "object": appname})
+        bottle.redirect("/dashboard?flash={}".format("Successful delete."))
 
+@main_app.post("/delete-file/<filename>")
+def del_file(filename):
+    cork = get_cork_instance()
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
+    current_user = get_current_user(cork)
+
+    db = FileDBOMongo(app_settings.get_database())
+    success = db.delete_file(filename, current_user, "file")
+    if not success:
+        error = "Failed to delete file."
+        app_settings.logger.error("error deleteing file", extra={
+            "actor": current_user, "action": "delete file", "object": filename})
+        bottle.redirect("/dashboard?error={}".format(error))
+    else:
+        for xx in range(0, int(app_settings.BIGCGI_TOTAL_INSTANCES)):
+            delete_file.apply_async(args=[current_user, filename, "file"], kwargs={}, queue='bigcgi_instance_' + str(xx))
+        app_settings.logger.info("file deleted", extra={
+            "actor": current_user, "action": "delete file", "object": filename})
+        bottle.redirect("/dashboard?flash={}".format("Successful delete."))
+        
 @main_app.post("/secure-app/<appname>/<security_setting:int>")
 def secure_app(appname, security_setting):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     db = AppDBOMongo(app_settings.get_database())
     db.secure_app(current_user, appname, security_setting)
@@ -160,8 +177,7 @@ def secure_app(appname, security_setting):
 def create_app():
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     name = bottle.request.forms.get('name')
     if not name:
@@ -172,65 +188,119 @@ def create_app():
         bottle.redirect("/dashboard?error={}".format(error))
         
     upload = bottle.request.files.get('upload')
-    
-    with tempfile.NamedTemporaryFile() as temp_storage:
-        final_path = os.path.join(app_settings.CGI_BASE_PATH_TEMPLATE.format(current_user),name)
-        save_path = temp_storage.name
-        upload.save(save_path, overwrite=True) # appends upload.filename automatically
-        status = os.system("sudo script/moveprog.tcl {} {} {}".format(current_user, save_path, final_path))
-        
-    error=None
-    flash="Successfully created app."
-    db = AppDBOMongo(app_settings.get_database())
-    db.create(name, current_user)
-    if error:
+    if upload.content_length > 1000000: #cap uploads to 1Mb
+        error = "Failed to upload app: exceeded maximum of 1Mb"
+        app_settings.logger.info("user attempted large upload", extra={
+            "actor":current_user,"action":"created file", "object":name})
         bottle.redirect("/dashboard?error={}".format(error))
-    if flash:
-        app_settings.logger.info("app created", extra={"actor":current_user,"action":"created app", "object":name})
+    db = FileDBOMongo(app_settings.get_database())
+    success = db.add_file(upload.file.read(), name, current_user, "app")
+    if not success:
+        error = "Failed to upload app."
+        app_settings.logger.error("error uploading app", extra={
+            "actor":current_user,"action":"created app", "object":name})
+        bottle.redirect("/dashboard?error={}".format(error))
+    else:
+        for xx in range(0, int(app_settings.BIGCGI_TOTAL_INSTANCES)):
+            sync_file.apply_async(args=[name, current_user, "app"], kwargs={}, queue='bigcgi_instance_' + str(xx))
+        flash = "Successfully uploaded app."
+        db = AppDBOMongo(app_settings.get_database())
+        db.create(name, current_user)
+        app_settings.logger.info("file created", extra={
+            "actor":current_user,"action":"created app", "object":name})
         bottle.redirect("/dashboard?flash={}".format(flash))
+
+@main_app.post("/create-file")
+def create_file():
+    cork = get_cork_instance()
+    cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
+    current_user = get_current_user(cork)
+
+    name = bottle.request.forms.get('name')
+    if not name:
+        bottle.redirect("/dashboard?error={}".format("File must have a name."))
+        return
+    if "/" in name or ".." in name:
+        error="Invalid file name: cannot contain .. or /"
+        bottle.redirect("/dashboard?error={}".format(error))
+
+    upload = bottle.request.files.get('upload')
+    if upload.content_length > 1000000: #cap uploads to 1Mb
+        error = "Failed to upload file: exceeded maximum of 1Mb"
+        app_settings.logger.info("user attempted large upload", extra={
+            "actor":current_user,"action":"created file", "object":name})
+        bottle.redirect("/dashboard?error={}".format(error))
+        
+    db = FileDBOMongo(app_settings.get_database())
+    success = db.add_file(upload.file.read(), name, current_user, "file")
+    if not success:
+        error = "Failed to upload file."
+        app_settings.logger.error("error uploading file", extra={
+            "actor":current_user,"action":"created file", "object":name})
+        bottle.redirect("/dashboard?error={}".format(error))
+    else:
+        for xx in range(0, int(app_settings.BIGCGI_TOTAL_INSTANCES)):
+            sync_file.apply_async(args=[name, current_user, "file"], kwargs={}, queue='bigcgi_instance_' + str(xx))
+        flash = "Successfully uploaded file."
+        app_settings.logger.info("file created", extra={
+            "actor":current_user,"action":"created file", "object":name})
+        bottle.redirect("/dashboard?flash={}".format(flash))
+    
 
 @main_app.get("/logs/<appname>")
 def get_app_logs(appname):
     cork = get_cork_instance()
     cork.require(role="user", fail_redirect="/?error=You are not authorized to access this page.")
-    user = cork.current_user
-    current_user = user.username
+    current_user = get_current_user(cork)
 
     db = AppDBOMongo(app_settings.get_database())
     logs = db.get_app_logs(current_user, appname)
-    return bottle.template("app-logs", {"title":"Logs for " + appname, "logs":logs})
+    return bottle.template("app-logs", {"title":"Logs for " + appname,"current_user":current_user, "logs":logs})
     
 @main_app.get("/login")
 def login_view():
-    return bottle.template("login", {"title":"Login", "csrf":get_csrf_token()})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("login", {"title":"Login", "csrf":get_csrf_token(), "current_user": current_user})
 
 @main_app.get("/docs")
 def docs_view():
-    return bottle.template("docs", {"title":"Documentation"})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("docs", {"title":"Documentation", "current_user": current_user})
 
 @main_app.get("/development")
 def development_view():
-    return bottle.template("development", {"title":"Development"})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("development", {"title":"Development", "current_user": current_user})
 
 @main_app.get("/register")
 def register_view():
-    flash = bottle.request.query.flash or None
-    error = bottle.request.query.error or None
-    return bottle.template("register", {"title":"Register", "csrf":get_csrf_token(), "flash":flash, "error":error})
+    cork = get_cork_instance()
+    flash, error = set_flash_and_error()
+    current_user = get_current_user(cork)
+    return bottle.template("register", {"title":"Register", "csrf":get_csrf_token(), "flash":flash, "error":error, "current_user": current_user})
 
 @main_app.get("/pricing")
 def pricing_view():
-    return bottle.template("pricing", {"title":"Pricing"})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("pricing", {"title":"Pricing", "current_user": current_user})
 
 @main_app.get("/pricing")
 def pricing_view():
-    return bottle.template("pricing", {"title":"Pricing"})
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
+    return bottle.template("pricing", {"title":"Pricing", "current_user": current_user})
 
 @main_app.get("/terms")
 def terms_view():
+    cork = get_cork_instance()
+    current_user = get_current_user(cork)
     with open("TERMS", "r") as terms_file:
         terms = terms_file.read()
-    return bottle.template("terms", {"title": "Terms of Service", "terms":terms})
+    return bottle.template("terms", {"title": "Terms of Service", "terms":terms, "current_user": current_user})
 
 #----------------------------------------------------
 # API
@@ -257,12 +327,7 @@ def bigcgi_run(username,appname):
             bottle.abort(401, "Authorization failed.")
     else:
         creds = None
-    #url = "http://internal.bigcgi.com/~{}/{}".format(username, appname)
-    #if bottle.request.method == "GET":
-    #    response = requests.get(url, params=dict(bottle.request.query))
-    #elif bottle.request.method == "POST":
-    #    response = requests.post(url,data=dict(bottle.request.forms)) #TODO: this should be changed to body
-    #if response.status_code < 300:
+        
     start_time = time.time()
     output, error, return_value = util.cgi.run_cgi(
         appname,
@@ -281,14 +346,15 @@ def bigcgi_run(username,appname):
     db.inc_hits(username, appname)
     db.inc_millisecs(username, appname, elapsed*1000)
     if return_value == 1:
-        output = bottle.template("app-error", {"output":output})
+        output = bottle.template("app-error", {"output":output, "error": error})
         headers = {"Status": 500}
     else:
-        error_logs = error.split("\n")
-        error_logs = [e for e in error_logs if e]
-        if error_logs:
-            db.app_log(username, appname, error_logs)
         headers, output = util.cgi.parse_output(output)
+        
+    error_logs = error.split("\n")
+    error_logs = [e for e in error_logs if e]
+    if error_logs:
+        db.app_log(username, appname, error_logs)
         
     content_type = headers.get("Content-Type", "text/html")
     access_control_allow_origin = headers.get("Access-Control-Allow-Origin", "*")

@@ -16,6 +16,8 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 -->
 %rebase("base.html")
 <a class="button button-primary" href="create-app"><img src="static/img/cloud-upload-3x.png" alt = "Upload"/>Create App</a>
+<a class="button button-primary" href="create-file"><img src="static/img/file-3x.png" alt = "Create File"/>Create File</a>
+<h2>Apps</h2>
 %if not get("apps",None):
 <p>You have no apps!</p>
 %else:
@@ -55,7 +57,28 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
   </div>
 </div>
 %end
-
+%end
+<h2>Files</h2>
+%if not get("files",None):
+<p>You have no files!</p>
+%else:
+%for file in files:
+<div class="row file-row">
+  <div class="eleven columns">
+    <div class="file-container">
+      <h4>{{file}}</h4>
+    </div>
+  </div>
+  <div class="one column">
+    <div class="action-container">
+       <form class="button-form" method="post" action="/delete-file/{{file}}">
+	<input type="image" src="static/img/trash-4x.png" alt="Delete File" title="Delete File" />
+	<input type="hidden" name="csrf" value="{{csrf}}" />
+      </form>
+    </div>
+  </div>
+</div>
+%end
 %end
 
 

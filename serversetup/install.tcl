@@ -38,26 +38,27 @@ safe_append "/etc/hosts" {::1			internal.bigcgi.com}
 #---------------------------
 safe_append "/etc/rc.conf" {apache24_enable="yes"}
 safe_append "/etc/rc.conf" {mongod_enable="yes"}
+safe_append "/etc/rc.conf" {redis_enable="yes"}
 
 #---------------------------
 # edit sudoers / setup scripts
 #---------------------------
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/adduser.tcl}
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/deluser.tcl}
-safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/moveprog.tcl}
+safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/movefile.tcl}
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/delprog.tcl}
 safe_append "/usr/local/etc/sudoers" {bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.py}
 
 
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/adduser.tcl
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/deluser.tcl
-exec chmod 700 /home/bigcgi/bigcgi-repo/script/moveprog.tcl
+exec chmod 700 /home/bigcgi/bigcgi-repo/script/movefile.tcl
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/delprog.tcl
 exec chmod 700 /home/bigcgi/bigcgi-repo/script/runcgi.py
 
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/adduser.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/deluser.tcl
-exec chown root:wheel /home/bigcgi/bigcgi-repo/script/moveprog.tcl
+exec chown root:wheel /home/bigcgi/bigcgi-repo/script/movefile.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/delprog.tcl
 exec chown root:wheel /home/bigcgi/bigcgi-repo/script/runcgi.py
 
@@ -69,17 +70,33 @@ if { ![file exists /home/bigcgi/bigcgi-repo/logs] } {
 } else {
     puts "Logs directory already exists."
 }
-exec chown bigcgi:bigcgi /home/bigcgi/bigcgi-repo/logs
+
+#---------------------------
+#  make tmp dir
+#---------------------------
+if {! [file exists /tmp/bigcgi] } {
+    exec mkdir /tmp/bigcgi
+} else {
+    puts "Tmp dirctory already exists."
+}
+
+#---------------------------
+#  lock down directories
+#---------------------------
+exec chown -R bigcgi:bigcgi /home/bigcgi/bigcgi-repo
+exec chmod -R 700 /home/bigcgi/bigcgi-repo
+exec chown -R bigcgi:bigcgi /tmp/bigcgi
+exec chmod -R 700 /tmp/bigcgi
 
 #---------------------------
 #  apache config
 #---------------------------
-#puts "Copying bigcgi_apache.conf to /usr/local/etc/apache24/Includes"
-#file copy -force /home/bigcgi/bigcgi-repo/serversetup/bigcgi_apache.conf /usr/local/etc/apache24/Includes/bigcgi_apache.conf
-#puts "Restarting server..."
-#if { [catch  { exec service apache24 restart } msg ] } {
-#  puts "Output from apache restart: $::errorInfo"
-#}
+puts "Copying bigcgi_apache.conf to /usr/local/etc/apache24/Includes"
+file copy -force /home/bigcgi/bigcgi-repo/serversetup/bigcgi_apache.conf /usr/local/etc/apache24/Includes/bigcgi_apache.conf
+puts "Restarting server..."
+if { [catch  { exec service apache24 restart } msg ] } {
+  puts "Output from apache restart: $::errorInfo"
+}
 
 #---------------------------
 # mongodb config

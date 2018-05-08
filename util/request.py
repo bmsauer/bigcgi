@@ -19,7 +19,7 @@ import bottle
 import uuid
 import base64
 
-from cork import Cork
+from cork import Cork, AuthException
 from cork.backends import MongoDBBackend
 import pymongo
 from settings import app_settings
@@ -86,3 +86,17 @@ def postd():
 
 def post_get(name, default=''):
     return bottle.request.POST.get(name, default).strip()
+
+def set_flash_and_error():
+    flash = bottle.request.params.flash or None
+    error = bottle.request.params.error or None
+    return (flash, error)
+
+def get_current_user(cork_instance):
+    current_user = None
+    try:
+        user = cork_instance.current_user
+        current_user = user.username
+    except AuthException as e:
+        current_user = None
+    return current_user

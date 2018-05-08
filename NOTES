@@ -1,7 +1,9 @@
 TODO LIST:
   - backup server process
-  - fleet management (jails + ansible + supervisor?)
+  - fleet management (jails + ansible + supervisor? bsdeploy? )
+  - tool to run code on all servers for all users
   - BUSINESS/MARKETING
+    - value prop and homepage messaging
     - tutorial
     - more resources and docs
     - performance benchmark
@@ -15,7 +17,17 @@ azure functions, ibm openwhisk, graph.cool, openFaas, fx, now
 To make package of custom apache24: build port, then run "make package".  Package tar will be in
 ./work/pkg
 
-Things to look into: fcgiwrap
+Things to look into: fcgiwrap / fcgi over stdin/out instead of sockets
+
+Libraries/Docs:  Wapps framework tcl
+
+Dev mongo shell: mongo --username bigcgi --password bigcgi --authenticationDatabase bigcgi-main bigcgi-main
+
+bottle-cork needs to be installed from github source;  python3 setup.py install.  removes broken pycrypto dependency
+
+GETTING THE WORD OUT
+stackshare
+reddit/hn
 
 DEVLOG: 
 
