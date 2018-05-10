@@ -23,7 +23,8 @@
 set username [lindex $argv 0]
 set progpath [lindex $argv 1]
 set newpath  [lindex $argv 2]
+set permissions [lindex $argv 3]
 
 file copy -force $progpath $newpath
-exec chmod 711 $newpath
+exec chmod $permissions $newpath
 exec chown $username:$username $newpath

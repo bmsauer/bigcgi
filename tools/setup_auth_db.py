@@ -27,7 +27,7 @@ from exceptions import *
 def run(*args):
     #cork (app auth)
     mb = MongoDBBackend(db_name=app_settings.DATABASE_CORK, initialize=True)
-    cork = Cork(backend=mb)
+    cork = Cork(backend=mb, preferred_hashing_algorithm='scrypt')
     admin_hash = cork._hash("admin", app_settings.ADMIN_PASSWORD)
     mb.users._coll.insert({
         "login": "admin",
@@ -83,7 +83,7 @@ def create_test_databases(*args):
     create_databases_with_auth(app_settings.DATABASE_CORK)
     create_databases_with_auth(app_settings.DATABASE_MAIN)
     mb = MongoDBBackend(db_name=app_settings.DATABASE_CORK, username=app_settings.DATABASE_USERNAME, password=app_settings.DATABASE_PASSWORD, initialize=True)
-    cork = Cork(backend=mb)
+    cork = Cork(backend=mb, preferred_hashing_algorithm='scrypt') 
     testuser_hash = cork._hash("testuser", "testuser")
     mb.users._coll.insert({
         "login": "testuser",

@@ -161,7 +161,7 @@ input[type="button"].button-primary:focus {
 /*---------------------------------------------------
   DASHBOARD
 ---------------------------------------------------*/
-div.app-row{
+div.app-row, div.file-row{
     background-color:#FCFCFC;
     margin-bottom:5px;
     border-radius: 4px;
@@ -169,6 +169,9 @@ div.app-row{
 }
 div.app-container{
     padding:5%;
+}
+div.file-container{
+    padding-left:5%;
 }
 div.action-container{
     padding:5%;

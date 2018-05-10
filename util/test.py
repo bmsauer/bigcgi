@@ -18,6 +18,25 @@ class ResponseMock(object):
         self.text = text
         self.elapsed = elapsed
         self.headers = {}
+
+class NamedTemporaryFileMock(object):
+    class MockFile(object):
+        def __init__(self):
+            self.write = MagicMock()
+            self.name = "file1"
+        def close(self):
+            pass
+            
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __enter__(self, *args, **kwargs):
+        return self.MockFile()
+    def __exit__(self, *args, **kwargs):
+        pass
+    
+    
 """      
 class AppDBOMongoMock(object):
     APPS = []

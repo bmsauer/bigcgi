@@ -21,6 +21,8 @@ from cork.backends import MongoDBBackend
 from util.request import *
 from settings import app_settings
 import os
+import subprocess
+
 from util.auth import get_cork_instance
 from util.email import send_gmail
 
@@ -49,14 +51,6 @@ def register():
     username = post_get('username')
     password = post_get('password')
     email_addr = post_get('email_address')
-
-    status = os.system("sudo script/adduser.tcl " + username)
-    if status != 0:
-        if status == 512:
-            bottle.redirect("?error=Username already exists.")
-        else:
-            app_settings.logger.error("failed to add user from script.", {"actor": username, "action":"error", "object":"register"})
-            bottle.abort(500, "Failed to add user")
     cork.register(username, password, email_addr)
     app_settings.logger.info("new user registered", {"actor":username,"action":"registered", "object":"bigcgi"})
     send_gmail("New bigCGI User!", "U: " + username + " E: " + email_addr, "bigcgi.app@gmail.com", "bigcgi.app@gmail.com")
@@ -66,7 +60,21 @@ def register():
 def validate_registration(registration_code):
     """Validate registration, create user account"""
     cork = get_cork_instance()
+    try:
+        username = cork._store.pending_registrations[registration_code]["username"]
+    except:
+        #valideate_registration will handle
+        pass
     cork.validate_registration(registration_code)
+    
+    process = subprocess.run(["sudo", "script/adduser.tcl", username], stdout=subprocess.PIPE)
+    status = process.returncode
+    stdout = process.stdout.decode("utf-8")
+    if status != 0 or "error" in stdout.lower():
+        cork.user(username).delete() #clean up cork user
+        app_settings.logger.error("failed to add user from script.", {"actor": username, "action":"error", "object":"register"})
+        bottle.abort(500, "Failed to add user: {}".format(stdout))
+        
     bottle.redirect("/?flash=Thank you for registering.")
     #return 'Thanks. <a href="/">Go to login</a>'
 

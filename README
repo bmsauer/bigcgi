@@ -49,8 +49,8 @@ INSTALL INSTRUCTIONS
   - VAGRANT
     - cd to serversetup, make env.sh and virtualenv
     - vagrant up && vagrant rsync-auto
-    - some manual steps still for dev: comment out ssl config in apache, chown -R bigcgi:bigcgi .
-    - more manual steps: add kern.racct.enable=1 to /boot/loader.conf, restart 
+    - vagrant halt, uncomment out owner:bigcgi in Vagrantfile, vagrant reload, vagrant up && vagrant rsync-auto
+    - manual steps: add kern.racct.enable=1 to /boot/loader.conf, restart 
 
 RUN TESTS
     - nosetests -vsx tests

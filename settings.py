@@ -16,6 +16,7 @@ along with bigCGI.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os
+import sys
 import logging
 from logging.handlers import RotatingFileHandler
 from log4mongo.handlers import BufferedMongoHandler
@@ -41,6 +42,11 @@ class AppSettings(object):
     DATABASE_LOGS = "bigcgi-logs"
     
     CGI_BASE_PATH_TEMPLATE = "/home/{}/public_html"
+    FILE_BASE_PATH_TEMPLATE = "/home/{}/files"
+    TMP_FILE_STORE = os.environ["BIGCGI_TMP_FILE_STORE"]
+    
+    BIGCGI_INSTANCE_ID = os.environ["BIGCGI_INSTANCE_ID"]
+    BIGCGI_TOTAL_INSTANCES = os.environ["BIGCGI_TOTAL_INSTANCES"]
 
     def __init__(self):
         self.logger = None
@@ -55,17 +61,24 @@ class AppSettings(object):
             filehandler = RotatingFileHandler("./logs/bigcgi.log", maxBytes=50000, backupCount=2)
             filehandler.setFormatter(formatter)
             self.logger.addHandler(filehandler)
-            handler = BufferedMongoHandler(host='localhost',
-                                       capped=True,
-                                       database_name="bigcgi-logs",
-                                       username=AppSettings.DATABASE_USERNAME,
-                                       password=AppSettings.DATABASE_PASSWORD,
-                                       authentication_db="bigcgi-logs",
-                                       buffer_size=100,      
-                                       buffer_periodical_flush_timing=10.0,
-                                       buffer_early_flush_level=logging.CRITICAL)
+            try:
+                handler = BufferedMongoHandler(host='localhost',
+                                               capped=True,
+                                               database_name="bigcgi-logs",
+                                               username=AppSettings.DATABASE_USERNAME,
+                                               password=AppSettings.DATABASE_PASSWORD,
+                                               authentication_db="bigcgi-logs",
+                                               buffer_size=100,      
+                                               buffer_periodical_flush_timing=10.0,
+                                               buffer_early_flush_level=logging.CRITICAL,
+                                               connectTimeoutMS=5000,
+                                               serverSelectionTimeoutMS=5000,
+                )
+                self.logger.addHandler(handler)
+            except pymongo.errors.ServerSelectionTimeoutError:
+                print("Failed to connecto to MongoDB logger.")
+                sys.exit(1)
 
-            self.logger.addHandler(handler)
             self.logger.setLevel("INFO")
         return self.logger
 

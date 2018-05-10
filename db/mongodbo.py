@@ -39,6 +39,13 @@ stats: {
 },
 security: 0, #optional
 }
+bigcgi-main.files
+{
+username: "username",
+filename: "filename",
+kind: "file|app",
+bytes_contents: bytes(file_contents)
+}
 bigcgi-logs.app-logs
 {
 username: "username",
@@ -75,6 +82,84 @@ class ReportingDBOMongo(MongoDatabaseConnection):
         self.reportingdb.monthly_hit_reports.insert_one({
             "date":datetime.datetime.utcnow(),
             "hits":hits})
+
+class FileDBOMongo(MongoDatabaseConnection):
+    def __init__(self, client):
+        super().__init__(client)
+        self.db = self.client[app_settings.DATABASE_MAIN]
+        self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+
+    def add_file(self, bytes_contents, filename, username, kind):
+        """
+        FileDBOMongo.add_file() : adds the contents of a file (app or file) to mongodb
+        Params:
+        - bytes_contents (bytes) : the contents of the file
+        - filename (string) : the file string
+        - username (string) : the owner of the file
+        - kind (string) : the kind of file it is (file|app)
+        Returns:
+        - (boolean) : true on success, false on failure
+        """
+        try:
+            self.db.files.update_one({
+                "username":username,
+                "filename":filename,
+            },
+            {
+                "$set": {"kind":kind, "bytes_contents": bytes_contents}
+            }, upsert=True)
+            return True
+        except:
+            return False
+
+    def delete_file(self, filename, username, kind):
+        """
+        FileDBOMongo.delete_file() : remove a file from mongodb
+        Params:
+        - filename (string) : the name of the file
+        - username (string) : the owner of the file
+        - kind (string) : kind of file it is (app|file)
+        Returns:
+        - (boolean) : true on success, false on failure
+        """
+        try:
+            self.db.files.delete_one({"username": username, "filename": filename, "kind": kind})
+            return True
+        except:
+            return False
+    
+    def get_file(self, filename, username, kind):
+        """
+        FileDBOMongo.get_file() : gets the contents of a file (app or file) from mongodb
+        Params:
+        - filename (string) : the file string
+        - username (string) : the owner of the file
+        - kind (string) : the kind of file it is (file|app)
+        Returns:
+        - (bytes) : the contents of the file
+        """
+        try:
+            fileout = self.db.files.find_one({"filename":filename, "username":username, "kind":kind})
+            if fileout:
+                return fileout["bytes_contents"]
+            else:
+                return None
+        except:
+            return None
+
+    def get_user_files(self, username):
+        """
+        FileDBOMongo.get_summary() - gets all files for a user
+        Params:
+        - username (string) : the name of the user
+        Returns:
+        - (list) : a list of filenames
+        """
+        files = self.db.files.find({"username":username, "kind": "file"}).sort("filename", 1)
+        return_files = []
+        for userfile in files:
+            return_files.append(userfile["filename"])
+        return return_files
         
 class AppDBOMongo(MongoDatabaseConnection):
     def __init__(self, client):
@@ -114,10 +199,14 @@ class AppDBOMongo(MongoDatabaseConnection):
         - appname (string) : the name of the app, which will be the name of the file
         - username (string) : the name of the user this app is for
         Returns:
-        - Nothing
+        - (boolean) : True on success, False on failure
         """
-        self.db.apps.delete_one({"username":username, "name":appname})
-        self.db.users.update_one({"username":username}, {"$pull":{"apps": appname}})
+        try:
+            self.db.apps.delete_one({"username":username, "name":appname})
+            self.db.users.update_one({"username":username}, {"$pull":{"apps": appname}})
+            return True
+        except:
+            return False
 
     def get_summary(self, username):
         """
