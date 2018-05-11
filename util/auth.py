@@ -14,5 +14,6 @@ def get_cork_instance():
         email_sender=app_settings.SMTP_USERNAME+"@gmail.com",
         smtp_url=smtp_url,
         preferred_hashing_algorithm='scrypt',
+        pbkdf2_iterations=10,
     )
     return cork
