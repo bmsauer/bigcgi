@@ -12,7 +12,7 @@ TODO LIST:
 
 NOTES
 Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
-azure functions, ibm openwhisk, graph.cool, openFaas, fx, now
+azure functions, ibm openwhisk, graph.cool, openFaas, fx, now, hook.io
 
 To make package of custom apache24: build port, then run "make package".  Package tar will be in
 ./work/pkg
