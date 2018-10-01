@@ -59,3 +59,12 @@ no avail; I floundered for a long time.  In the end I did the "unthinkable"; got
 it with a custom CGI server implemented in Python.  I want to make note of this day because I took a
 seemingly unsurmountable problem and solved it by completely abandoning what I thought was set in stone.
 It gives me confidence that I can solve any problem thrown my way so long as I keep a creative open mind.
+
+-- 05-10-2018 --
+Today I pushed a change to prod that allows users to upload read-only files for library and config files.
+It was a massive effort months in the making, and deployment was a bit of a pain, but I'm happy the way
+it turned out.  I'm sure I'll be doing debugging for a little, this feels like a big relief already.
+This deployment taught me a few things; 1, bottle-cork is in a bad state and I need to fork it.  2,
+I need to start utilizing jails so I can build my environment from scratch each time and set up true
+staging environments.  I will work on that next, after I do branding and marketing work and before any
+new big features.
