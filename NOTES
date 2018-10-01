@@ -12,7 +12,7 @@ TODO LIST:
 
 NOTES
 Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
-azure functions, ibm openwhisk, graph.cool, openFaas, fx, now
+azure functions, ibm openwhisk, graph.cool, openFaas, fx, now, hook.io
 
 To make package of custom apache24: build port, then run "make package".  Package tar will be in
 ./work/pkg
@@ -24,6 +24,10 @@ Libraries/Docs:  Wapps framework tcl
 Dev mongo shell: mongo --username bigcgi --password bigcgi --authenticationDatabase bigcgi-main bigcgi-main
 
 bottle-cork needs to be installed from github source;  python3 setup.py install.  removes broken pycrypto dependency
+
+POTENTIAL DEMO APPS
+formspree.io clone
+blog software
 
 GETTING THE WORD OUT
 stackshare
