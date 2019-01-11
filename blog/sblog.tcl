@@ -10,10 +10,8 @@ proc get_slug {title} {
 }
 
 proc render_template {template_filename contents_filename {other_vars {}} } {
-    puts [llength $other_vars]
     if { [llength $other_vars] != 0 } {
 	foreach var $other_vars {
-	    puts $var
 	    upvar $var $var
 	}
     }
