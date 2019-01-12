@@ -1,8 +1,8 @@
-<html>
+[render_template templates/header.html {} {title}]
 <body>
-  <h1>bigCGI blog</h1>
+  <h1 class="logo">big<span class="darkorchid">CGI</span> blog</h1>
   <p>This is the blog, here are some posts:</p>
   <p>$list_of_posts</p>
-  <p>This blog last updated $last_updated</p>
+  <p>This blog last updated $last_updated.</p>
 </body>
-</html>
+[render_template templates/footer.html]

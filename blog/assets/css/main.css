@@ -1,0 +1,21 @@
+html {
+    margin:0;
+    padding:0;
+}
+
+body {
+    font-family: Verdana, sans;
+    width:66%;
+    margin-left:auto;
+    margin-right: auto;
+    color:#010101;
+}
+
+hr{
+    border-top: 1px solid #777;
+}
+span.darkorchid{
+    color:darkorchid;
+}
+
+    

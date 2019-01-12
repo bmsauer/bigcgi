@@ -9,13 +9,15 @@ proc get_slug {title} {
     return $slug
 }
 
-proc render_template {template_filename contents_filename {other_vars {}} } {
+proc render_template {template_filename {contents_filename {}} {other_vars {}} } {
     if { [llength $other_vars] != 0 } {
 	foreach var $other_vars {
 	    upvar $var $var
 	}
     }
-    source $contents_filename
+    if { [llength $contents_filename] != 0 } {
+	source $contents_filename
+    }
     set template [open $template_filename r]
     set template_contents [read $template]
     set output [subst $template_contents]
@@ -52,13 +54,20 @@ proc compile_index {posts} {
 	set tags [lindex $post_data 2]
 	append list_of_posts "<a href=\"[get_slug $title].html\">$title $date $tags</a><br>"
     }
+    set title "bigCGI Blog Home"
     #render template
-    set output [render_template "templates/index.html" "pages/index.tcl"  {list_of_posts}]
+    set output [render_template "templates/index.html" "pages/index.tcl"  {list_of_posts title}]
     #dump file
     write_contents $output "dist/index.html"
 }
 
+proc compile_assets {} {
+    exec rm -rf dist/assets
+    exec cp -R assets dist/assets
+}
+
 set posts [compile_content]
 compile_index $posts
+compile_assets
 
 puts done

@@ -1,9 +1,10 @@
-<html>
+[render_template templates/header.html {} {title}]
 <body>
-  <h1>$title</h1>
-  <h2>$date</h2>
+  <h1 class="logo">big<span class="darkorchid">CGI</span> blog</h1>
+  <h2>$title</h2>
+  <h3>$date</h3>
   <p>$content</p>
   <p>$tags</p>
   <a href="index.html">Home</a>
 </body>
-</html>
+[render_template templates/footer.html]</html>
