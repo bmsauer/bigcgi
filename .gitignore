@@ -7,3 +7,4 @@ logs/*.log*
 celerybeat-schedule*
 .vagrant
 config.ini
+blog/dist
