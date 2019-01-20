@@ -31,6 +31,18 @@ proc write_contents {contents filename} {
     close $fileout
 }
 
+proc compare_posts { a b } {
+    set a_seconds [clock scan [lindex $a 1] -format "%Y-%m-%d"]
+    set b_seconds [clock scan [lindex $b 1] -format "%Y-%m-%d"]
+    if {$a_seconds == $b_seconds} {
+	return 0
+    } elseif { $a_seconds > $b_seconds } {
+	return 1
+    } else {
+	return -1
+    }
+}
+
 proc compile_content {} {
     set filenames [glob "content/*"]
     set posts [list]
@@ -47,12 +59,13 @@ proc compile_content {} {
 }
 
 proc compile_index {posts} {
+    set posts [lsort -command compare_posts $posts]
     set list_of_posts ""
     foreach post_data $posts {
 	set title [lindex $post_data 0]
 	set date [lindex $post_data 1]
 	set tags [lindex $post_data 2]
-	append list_of_posts "<a href=\"[get_slug $title].html\">$title $date $tags</a><br>"
+	append list_of_posts "<a href=\"[get_slug $title].html\"><h2>$title</h2></a><br> $date $tags<br>"
     }
     set title "bigCGI Blog Home"
     #render template
@@ -62,10 +75,11 @@ proc compile_index {posts} {
 }
 
 proc compile_assets {} {
-    exec rm -rf dist/assets
     exec cp -R assets dist/assets
 }
 
+exec rm -rf dist
+exec mkdir dist
 set posts [compile_content]
 compile_index $posts
 compile_assets
