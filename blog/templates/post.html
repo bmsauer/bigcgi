@@ -1,10 +1,7 @@
 [render_template templates/header.html {} {title}]
-<body>
-  <h1 class="logo">big<span class="darkorchid">CGI</span> blog</h1>
-  <h2>$title</h2>
-  <h3>$date</h3>
-  <p>$content</p>
-  <p>$tags</p>
-  <a href="index.html">Home</a>
-</body>
-[render_template templates/footer.html]</html>
+<span class='title-big'>$title</span><br/>
+<span class='date'>$date</span><br/>
+<p>$content</p>
+<p>[func_common_display_tags $tags]</p>
+<a href="index.html">Blog Index</a>
+[render_template templates/footer.html pages/index.tcl]</html>

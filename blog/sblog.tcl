@@ -82,11 +82,15 @@ proc compile_index {posts} {
 	set title [lindex $post_data 0]
 	set date [lindex $post_data 1]
 	set tags [lindex $post_data 2]
-	append list_of_posts "<a href=\"[get_slug $title].html\"><h2>$title</h2></a><br> $date $tags<br>"
+	append list_of_posts "<p><a href=\"[get_slug $title].html\"><span class='title'>$title</span></a><br/>"
+	append list_of_posts "<span class='date'>$date</span><br/>"
+	append list_of_posts  [func_common_display_tags $tags] "</p>"
+	
+    
     }
     set title "bigCGI Blog Home"
     #render template
-    set output [render_template "templates/index.html" "pages/index.tcl"  {list_of_posts title}]
+    set output [render_template "templates/index.html" "pages/index.tcl"  {list_of_posts title }]
     #dump file
     write_contents $output "dist/index.html"
 }
@@ -95,8 +99,16 @@ proc compile_assets {} {
     exec cp -R assets dist/assets
 }
 
+proc grab_funcs {} {
+    set filenames [glob "funcs/*"]
+    foreach filename $filenames {
+	source $filename
+    }
+}
+
 exec rm -rf dist
 exec mkdir dist
+grab_funcs
 set posts [compile_content]
 compile_index $posts
 compile_assets

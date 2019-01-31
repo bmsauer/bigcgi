@@ -1,10 +1,11 @@
 html {
     margin:0;
     padding:0;
+    background-image:url("../img/paper_fibers.png");
 }
 
 body {
-    font-family: Verdana, sans;
+    font-family: 'ralewayregular', Verdana, sans-serif;
     width:66%;
     margin-left:auto;
     margin-right: auto;
@@ -14,8 +15,40 @@ body {
 hr{
     border-top: 1px solid #777;
 }
+
+.logo h1{
+    font-family: 'armataregular', Verdana, sans-serif;
+}
+.logo a{
+    text-decoration:none;
+    color:#222;
+}
 span.darkorchid{
     color:darkorchid;
 }
 
-    
+.tag {
+    background-color:#444444;
+    color:#dddddd;
+    border: 1px solid black;
+    border-radius: 20px 20px 20px 20px;
+    -moz-border-radius: 20px 20px 20px 20px;
+    -webkit-border-radius: 20px 20px 20px 20px;
+    padding: 3px;
+    padding-left:5px;
+    padding-right:5px;
+    margin-right:5px;   
+}
+
+.date {
+    font-weight:bold;
+    font-size:120%;
+}
+
+.title {
+    font-size:150%;
+}
+.title-big {
+    font-size:200%;
+    text-decoration:underline;
+}

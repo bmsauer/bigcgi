@@ -7,7 +7,7 @@ set content "
 
 <h4>bigCGI</h4>
 <h5>What is bigCGI?</h5>
-<p>bigCGI is a function as a service \(FaaS)
+<p>bigCGI is a function as a service \(FaaS\)
 
 
 <pre>
