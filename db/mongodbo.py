@@ -58,6 +58,16 @@ message: "message",
 class MongoDatabaseConnection(object):
     def __init__(self, client):
         self.client = client
+
+class UserDBOMongo(MongoDatabaseConnection):
+    def __init__(self, client):
+        super().__init__(client)
+        self.maindb = self.client[app_settings.DATABASE_MAIN]
+        self.maindb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+
+    def get_all_users(self):
+        users = self.maindb.users.find({})
+        return users
         
 class ReportingDBOMongo(MongoDatabaseConnection):
     def __init__(self, client):

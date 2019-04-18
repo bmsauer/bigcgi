@@ -36,9 +36,9 @@ INSTALL INSTRUCTIONS
   - MANUAL INSTALL
     - add kern.racct.enable=1 to /boot/loader.conf, restart
     - create bigcgi user with adduser
-    - install packages git, bash, sudo, tcl86, python35, apache24, mongodb, rabbitmq, supervisord
-      - for apache24, it must be compiled with suexec
     - clone the repo into /home/bigcgi/bigcgi-repo
+    - install packages git, bash, sudo, tcl86, python35, apache24, mongodb, rabbitmq, supervisord
+      - for apache24
     - create an env.sh file and source to shell
     - virtualenv -p $(which python3.5) env 
     - source env/bin/activate

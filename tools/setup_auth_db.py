@@ -46,7 +46,10 @@ def run(*args):
     db = client["admin"]
     db.add_user('useradmin', 
 		app_settings.DATABASE_USERADMIN_PASSWORD, 
-		roles=[{"role":"userAdminAnyDatabase","db": "admin"}])
+		roles=[{"role":"userAdminAnyDatabase","db": "admin"},
+                       {"role": "backup", "db": "admin"},
+                       {"role": "restore", "db": "admin"}
+                ])
     db = client["bigcgi-main"]
     db.add_user(app_settings.DATABASE_USERNAME,
                 app_settings.DATABASE_PASSWORD,

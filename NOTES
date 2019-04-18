@@ -14,16 +14,25 @@ NOTES
 Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
 azure functions, ibm openwhisk, graph.cool, openFaas, fx, now, hook.io
 
-To make package of custom apache24: build port, then run "make package".  Package tar will be in
-./work/pkg
+To make package of custom apache24: build port, then run "make package".  Package tar will be in ./work/pkg <-- deprecated but interesting 
 
 Things to look into: fcgiwrap / fcgi over stdin/out instead of sockets
 
 Libraries/Docs:  Wapps framework tcl
 
+MIGRATING/PROVISIONING SERVERS
+- read from mongodb: for each user:
+  - create user using adduser.tcl
+  - for each file belonging to username:
+    - run sync_file celery task
+
+MONGODB
+create a backup in dump/ in pwd: mongodump -u '<userwithbackuprole>' -p 'xxxxxx'
+restore a backup from dump/ in pwd: 
 Dev mongo shell: mongo --username bigcgi --password bigcgi --authenticationDatabase bigcgi-main bigcgi-main
 
-bottle-cork needs to be installed from github source;  python3 setup.py install.  removes broken pycrypto dependency
+OTHER TECH TIDBITS
+bottle-cork needs to be installed from github source, as my fork works with mongo3.6;  python3 setup.py install.  also removes broken pycrypto dependency
 
 POTENTIAL DEMO APPS
 formspree.io clone

@@ -35,7 +35,7 @@ class AppSettings(object):
     DATABASE_USERADMIN_PASSWORD = os.environ["BIGCGI_DATABASE_USERADMIN_PASSWORD"]
     DATABASE_USERNAME = os.environ["BIGCGI_DATABASE_USERNAME"]
     DATABASE_PASSWORD = os.environ["BIGCGI_DATABASE_PASSWORD"]
-    DATABASE_URI = "mongodb://localhost:27017"
+    DATABASE_URI = os.environ["BIGCGI_DATABASE_URI"]
     DATABASE_MAIN = "bigcgi-main"
     DATABASE_CORK = "bigcgi-cork"
     DATABASE_REPORTING = "bigcgi-reporting"

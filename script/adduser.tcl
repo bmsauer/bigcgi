@@ -65,6 +65,11 @@ if { [catch { exec chmod -R 711 /home/$username } msg ] } {
     cleanup $username
     exit 2
 }
+if { [catch { exec chmod -R 500 /home/$username/public_html } msg ] } {
+    puts "Error changing public_html dir permissions: $msg"
+    cleanup $username
+    exit 2
+}
 if { [catch { exec rctl -a user:$username:maxproc:deny=10/user } msg ] } {
     puts "Error setting process resource limits: $msg"
     cleanup $username
