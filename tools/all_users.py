@@ -64,7 +64,7 @@ def run(*args):
     callback = None
     if args[0] == "create":
         callback = create_users
-    if args[0] == "sync_files":
+    elif args[0] == "sync_files":
         callback = sync_files
     else:
         print("error: invalid command for all_users")
