@@ -45,9 +45,9 @@
 #    </VirtualHost>
 #    <VirtualHost *:443>
 #        SSLEngine on
-#        SSLCertificateFile      /usr/local/etc/letsencrypt/live/bigcgi.com/cert.pem
-#        SSLCertificateKeyFile /usr/local/etc/letsencrypt/live/bigcgi.com/privkey.pem
-#        SSLCertificateChainFile /usr/local/etc/letsencrypt/live/bigcgi.com/chain.pem
+#        SSLCertificateFile      /usr/local/etc/letsencrypt/live/blog.bigcgi.com/cert.pem
+#        SSLCertificateKeyFile /usr/local/etc/letsencrypt/live/blog.bigcgi.com/privkey.pem
+#        SSLCertificateChainFile /usr/local/etc/letsencrypt/live/blog.bigcgi.com/chain.pem
 #        ServerName blog.bigcgi.com
 #        ServerAlias www.blog.bigcgi.com
 #        DocumentRoot /usr/local/www/apache24/data/bigcgi-blog        
