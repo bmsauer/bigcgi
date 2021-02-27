@@ -1,0 +1,44 @@
+---
+- hosts: bigcgi_node
+  remote_user: vagrant
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - name: Install dependencies via pkg
+      community.general.pkgng:
+        name: git, sudo, bash, tcl86, tcllib, tdbc, python36, mongodb36, redis4, py37-supervisor, apache24, wget, unzip
+        state: present
+
+    - name: Create bigcgi user
+      user:
+        name: bigcgi
+        shell: /usr/local/bin/bash
+        home: /home/bigcgi
+
+    - name: Install pip
+      shell: python3.6 -m ensurepip && python3.6 -m pip install --upgrade pip
+
+    - name: Clone bigcgi
+      git:
+        repo: https://github.com/bmsauer/bigcgi.git
+        dest: /home/bigcgi/bigcgi-repo
+
+    - name: Install bigcgi pip dependencies
+      pip:
+        requirements: /home/bigcgi/bigcgi-repo/requirements.txt
+        virtualenv: /home/bigcgi/bigcgi-repo/venv
+        virtualenv_command: python3.6 -m venv
+
+    - name: Install bottle-cork from lib folder
+      shell:
+        chdir: /home/bigcgi/bigcgi-repo/vendor/bottle-cork-master
+        cmd: python3.6 setup.py install
+
+    - name: Give bigcgi ownership of bigcgi-repo
+      file:
+        owner: bigcgi
+        group: bigcgi
+        recurse: true
+        path: /home/bigcgi/bigcgi-repo
+        
