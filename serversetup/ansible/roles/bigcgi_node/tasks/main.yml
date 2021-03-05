@@ -1,0 +1,75 @@
+---
+- name: Ensure kern.racct.enable=1 in /boot/loader.conf
+  lineinfile:
+    path: /boot/loader.conf
+    regexp: '^kern.racct.enable='
+    line: kern.racct.enable=1
+  notify:
+    - Restart FreeBSD
+    
+- name: Install dependencies via pkg
+  community.general.pkgng:
+    name: git, sudo, bash, python36, redis4, py37-supervisor
+    state: present
+
+- name: Create bigcgi user
+  user:
+    name: bigcgi
+    shell: /usr/local/bin/bash
+    home: /home/bigcgi
+
+- name: Install pip
+  shell: python3.6 -m ensurepip && python3.6 -m pip install --upgrade pip
+
+- name: Clone bigcgi
+  git:
+    repo: https://github.com/bmsauer/bigcgi.git
+    dest: /home/bigcgi/bigcgi-repo
+
+- name: Install bigcgi pip dependencies
+  pip:
+    requirements: /home/bigcgi/bigcgi-repo/requirements.txt
+    virtualenv: /home/bigcgi/bigcgi-repo/venv
+    virtualenv_command: python3.6 -m venv
+
+- name: Install bottle-cork from lib folder
+  shell:
+    chdir: /home/bigcgi/bigcgi-repo/vendor/bottle-cork-master
+    cmd: python3.6 setup.py install
+
+- name: Create env.sh
+  template:
+    src: env.sh.template
+    dest: /home/bigcgi/bigcgi-repo/env.sh
+
+- name: Create bigcgi tmp dir
+  file:
+    owner: bigcgi
+    group: bigcgi
+    mode: '700'
+    path: {{bigcgi_tmp_file_store}}
+    state: directory
+
+- name: Give bigcgi ownership of bigcgi-repo
+  file:
+    owner: bigcgi
+    group: bigcgi
+    mode: '700'
+    recurse: true
+    path: /home/bigcgi/bigcgi-repo
+
+- name: Enable redis in /etc/rc.conf
+  community.general.sysrc:
+    name: redis_enable
+    value: "YES"
+
+- name: Start redis
+  service:
+    name: redis
+    state: started
+
+- name: Start app
+  community.general.supervisorctl:
+    name: my_app
+    state: restarted
+    config: /var/opt/my_project/supervisord.conf
