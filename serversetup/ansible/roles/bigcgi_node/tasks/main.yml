@@ -1,4 +1,7 @@
 ---
+#------------------------------------------
+#-- DEPENDENCIES
+#------------------------------------------
 - name: Ensure kern.racct.enable=1 in /boot/loader.conf
   lineinfile:
     path: /boot/loader.conf
@@ -25,6 +28,7 @@
   git:
     repo: https://github.com/bmsauer/bigcgi.git
     dest: /home/bigcgi/bigcgi-repo
+    force: yes
 
 - name: Install bigcgi pip dependencies
   pip:
@@ -42,14 +46,6 @@
     src: env.sh.template
     dest: /home/bigcgi/bigcgi-repo/env.sh
 
-- name: Create bigcgi tmp dir
-  file:
-    owner: bigcgi
-    group: bigcgi
-    mode: '700'
-    path: {{bigcgi_tmp_file_store}}
-    state: directory
-
 - name: Give bigcgi ownership of bigcgi-repo
   file:
     owner: bigcgi
@@ -58,6 +54,59 @@
     recurse: true
     path: /home/bigcgi/bigcgi-repo
 
+#------------------------------------------
+#-- CGI RUNNER
+#------------------------------------------
+- name: Create bigcgi tmp dir
+  file:
+    owner: bigcgi
+    group: bigcgi
+    mode: '700'
+    path: "{{bigcgi_tmp_file_store}}"
+    state: directory
+    
+- name: Modify Sudoers (adduser)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/adduser.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/adduser.tcl'
+
+- name: Modify Sudoers (deluser)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/deluser.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/deluser.tcl'
+
+- name: Modify Sudoers (movefile)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/movefile.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/movefile.tcl'
+
+- name: Modify Sudoers (delprog)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/delprog.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/delprog.tcl'
+
+- name: Modify Sudoers (runcgi)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.tcl'
+
+- name: Lock down scripts dir
+  file:
+    owner: root
+    group: wheel
+    mode: '700'
+    recurse: true
+    path: /home/bigcgi/bigcgi-repo/script
+  
+
+#------------------------------------------
+#-- REDIS
+#------------------------------------------
 - name: Enable redis in /etc/rc.conf
   community.general.sysrc:
     name: redis_enable
@@ -68,8 +117,11 @@
     name: redis
     state: started
 
-- name: Start app
-  community.general.supervisorctl:
-    name: my_app
-    state: restarted
-    config: /var/opt/my_project/supervisord.conf
+#------------------------------------------
+#-- START APP
+#------------------------------------------
+#- name: Start app
+#  community.general.supervisorctl:
+#    name: my_app
+#    state: restarted
+#    config: /var/opt/my_project/supervisord.conf

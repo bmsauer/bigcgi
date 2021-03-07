@@ -1,0 +1,3 @@
+- run supervisor, wire up to pound/mongo
+- create admin user via ansible
+- deprecate tools/old scripts

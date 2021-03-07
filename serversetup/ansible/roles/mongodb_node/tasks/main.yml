@@ -1,0 +1,65 @@
+---
+- name: Install mongodb via pkg
+  community.general.pkgng:
+    name: mongodb36
+    state: present
+
+- name: Enable mongodb in /etc/rc.conf
+  community.general.sysrc:
+    name: mongod_enable
+    value: "YES"
+
+- name: Set mongo config file in /etc/rc.conf
+  community.general.sysrc:
+    name: mongod_config
+    value: /usr/local/etc/mongodb.conf
+
+- name: Create mongodb data directory
+  file:
+    owner: mongodb
+    group: mongodb
+    mode: '700'
+    path: /var/db/mongodb
+    state: directory
+
+- name: Create mongodb.conf, without auth
+  vars:
+    bigcgi_mongodb_auth: disabled
+  template:
+    src: mongodb.conf.template
+    dest: /usr/local/etc/mongodb.conf
+
+- name: Restart mongod
+  service:
+    name: mongod
+    state: restarted
+
+- name: Create bigcgi useradmin
+  script:
+    cmd: create_useradmin.js
+    executable: "mongo --eval \"var password = '{{bigcgi_database_useradmin_password}}'; \" "
+
+- name: Update bigcgi useradmin
+  script:
+    cmd: update_useradmin.js
+    executable: "mongo --eval \"var password = '{{bigcgi_database_useradmin_password}}'; \" "
+
+- name: Create bigcgi user
+  script:
+    cmd: create_bigcgi.js
+    executable: "mongo --eval \"var username = '{{bigcgi_database_username}}', password = '{{bigcgi_database_password}}'; \" "
+    
+- name: Create mongodb.conf, with auth
+  vars:
+    bigcgi_mongodb_auth: enabled
+  template:
+    src: mongodb.conf.template
+    dest: /usr/local/etc/mongodb.conf
+
+- name: Restart mongod
+  service:
+    name: mongod
+    state: restarted
+
+
+

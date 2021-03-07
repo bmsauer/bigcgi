@@ -41,41 +41,6 @@ def run(*args):
     #mb.roles._coll.insert({'role': 'editor', 'val': 60})
     mb.roles._coll.insert({'role': 'user', 'val': 50})
 
-    #database users and roles
-    client = pymongo.MongoClient(app_settings.DATABASE_URI)
-    db = client["admin"]
-    db.add_user('useradmin', 
-		app_settings.DATABASE_USERADMIN_PASSWORD, 
-		roles=[{"role":"userAdminAnyDatabase","db": "admin"},
-                       {"role": "backup", "db": "admin"},
-                       {"role": "restore", "db": "admin"}
-                ])
-    db = client["bigcgi-main"]
-    db.add_user(app_settings.DATABASE_USERNAME,
-                app_settings.DATABASE_PASSWORD,
-                roles=[{"role":"readWrite", "db": "bigcgi-main"}])
-    db = client["bigcgi-cork"]
-    db.add_user(app_settings.DATABASE_USERNAME,
-                app_settings.DATABASE_PASSWORD,
-                roles=[{"role":"readWrite", "db": "bigcgi-cork"}])
-    db = client["bigcgi-logs"]
-    db.add_user(app_settings.DATABASE_USERNAME,
-                app_settings.DATABASE_PASSWORD,
-                roles=[{"role":"readWrite", "db": "bigcgi-logs"}])
-    db = client["bigcgi-reporting"]
-    db.add_user(app_settings.DATABASE_USERNAME,
-                app_settings.DATABASE_PASSWORD,
-                roles=[{"role":"readWrite", "db": "bigcgi-reporting"}])
-
-def create_databases_with_auth(*args):
-    new_db_name = args[0]
-    client = pymongo.MongoClient(app_settings.DATABASE_URI)
-    db = client[new_db_name]
-    db.authenticate("useradmin", app_settings.DATABASE_USERADMIN_PASSWORD, "admin")
-    db.add_user(app_settings.DATABASE_USERNAME,
-                app_settings.DATABASE_PASSWORD,
-                roles=[{"role":"readWrite", "db":new_db_name}])
-
 def create_role(*args):
     new_role_name = args[0]
     new_role_level = args[1]
