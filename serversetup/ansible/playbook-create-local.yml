@@ -6,5 +6,5 @@
 
   roles:
     - mongodb_node
-    #- pound_node
-    #- bigcgi_node
+    - pound_node
+    - bigcgi_node

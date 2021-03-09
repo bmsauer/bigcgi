@@ -48,6 +48,11 @@
   script:
     cmd: create_bigcgi.js
     executable: "mongo --eval \"var username = '{{bigcgi_database_username}}', password = '{{bigcgi_database_password}}'; \" "
+
+- name: Update bigcgi user
+  script:
+    cmd: update_bigcgi.js
+    executable: "mongo --eval \"var username = '{{bigcgi_database_username}}', password = '{{bigcgi_database_password}}'; \" "
     
 - name: Create mongodb.conf, with auth
   vars:

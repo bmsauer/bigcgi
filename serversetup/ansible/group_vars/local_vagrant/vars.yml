@@ -1,4 +1,5 @@
 ---
+#ansible stuff
 ansible_host: 127.0.0.1
 ansible_port: 2222
 ansible_user: vagrant
@@ -6,6 +7,10 @@ ansible_ssh_private_key_file: ../.vagrant/machines/default/virtualbox/private_ke
 ansible_python_interpreter: /usr/local/bin/python3.6
 ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
+#bigcgi ansible stuff
+bigcgi_ansible_branch: local
+
+#bigcgi env
 bigcgi_env: local
 bigcgi_secret_key: "{{vault_bigcgi_secret_key}}"
 bigcgi_admin_password: "{{vault_bigcgi_admin_password}}"
@@ -14,6 +19,7 @@ bigcgi_smtp_password: "{{vault_bigcgi_smtp_password}}"
 bigcgi_database_useradmin_password: "{{vault_bigcgi_database_useradmin_password}}"
 bigcgi_database_username: "{{vault_bigcgi_database_username}}"
 bigcgi_database_password: "{{vault_bigcgi_database_password}}"
+bigcgi_database_uri: "mongodb://localhost:27017"
 bigcgi_instance_id: 0
 bigcgi_total_instances: 1
 bigcgi_tmp_file_store: /tmp/bigcgi

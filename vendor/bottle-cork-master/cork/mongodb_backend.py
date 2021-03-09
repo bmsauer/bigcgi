@@ -158,12 +158,13 @@ class MongoDBBackend(Backend):
         initialize=False,
         username=None,
         password=None,
+        authdb=None,
     ):
         """Initialize MongoDB Backend"""
         connection = pymongo.MongoClient(host=hostname, port=port)
         db = connection[db_name]
-        if username and password:
-            db.authenticate(username, password)
+        if username and password and authdb:
+            db.authenticate(username, password, authdb)
         self.users = MongoMultiValueTable("users", "login", db.users)
         self.pending_registrations = MongoMultiValueTable(
             "pending_registrations", "pending_registration", db.pending_registrations
