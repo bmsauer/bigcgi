@@ -32,7 +32,12 @@ restore a backup from dump/ in pwd:
 Dev mongo shell: mongo --username bigcgi --password bigcgi --authenticationDatabase bigcgi-main bigcgi-main
 
 OTHER TECH TIDBITS
-bottle-cork needs to be installed from github source, as my fork works with mongo3.6;  python3 setup.py install.  also removes broken pycrypto dependency
+bottle-cork has been added to a vendor/ folder.  Its customized for bigcgi.
+
+PKG ON FREEBSD
+Sometimes pkg gets corrupted by ansible.  When it does this, it cant find or install
+packages.  to fix:
+/usr/local/sbin/pkg-static update -f
 
 POTENTIAL DEMO APPS
 formspree.io clone

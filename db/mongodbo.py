@@ -63,7 +63,7 @@ class UserDBOMongo(MongoDatabaseConnection):
     def __init__(self, client):
         super().__init__(client)
         self.maindb = self.client[app_settings.DATABASE_MAIN]
-        self.maindb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+        self.maindb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD, app_settings.DATABASE_MAIN)
 
     def get_all_users(self):
         users = self.maindb.users.find({})
@@ -73,9 +73,9 @@ class ReportingDBOMongo(MongoDatabaseConnection):
     def __init__(self, client):
         super().__init__(client)
         self.maindb = self.client[app_settings.DATABASE_MAIN]
-        self.maindb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+        self.maindb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD, app_settings.DATABASE_MAIN)
         self.reportingdb = self.client[app_settings.DATABASE_REPORTING]
-        self.reportingdb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+        self.reportingdb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD, app_settings.DATABASE_MAIN)
 
     def create_monthly_hits_report(self):
         #get all users and their monthly hits
@@ -97,7 +97,7 @@ class FileDBOMongo(MongoDatabaseConnection):
     def __init__(self, client):
         super().__init__(client)
         self.db = self.client[app_settings.DATABASE_MAIN]
-        self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+        self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD, app_settings.DATABASE_MAIN)
 
     def add_file(self, bytes_contents, filename, username, kind):
         """
@@ -175,9 +175,9 @@ class AppDBOMongo(MongoDatabaseConnection):
     def __init__(self, client):
         super().__init__(client)
         self.db = self.client[app_settings.DATABASE_MAIN]
-        self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+        self.db.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD, app_settings.DATABASE_MAIN)
         self.logsdb = self.client[app_settings.DATABASE_LOGS]
-        self.logsdb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD)
+        self.logsdb.authenticate(app_settings.DATABASE_USERNAME, app_settings.DATABASE_PASSWORD, app_settings.DATABASE_MAIN)
 
     def create(self, appname, username):
         """

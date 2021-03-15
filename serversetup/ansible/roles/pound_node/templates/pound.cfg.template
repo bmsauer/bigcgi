@@ -37,10 +37,6 @@ Service
         Address 127.0.0.1
         Port    8888
     End
-    BackEnd
-        Address 127.0.0.1
-        Port    8888
-    End
     Session
         Type    BASIC
         TTL     300

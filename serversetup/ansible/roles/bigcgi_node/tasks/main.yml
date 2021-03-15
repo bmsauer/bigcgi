@@ -12,7 +12,7 @@
     
 - name: Install dependencies via pkg
   community.general.pkgng:
-    name: git, sudo, bash, python36, redis4, py37-supervisor
+    name: git, sudo, bash, tcl86, tcllib python37, redis4, py37-supervisor
     state: present
 
 - name: Create bigcgi user
@@ -22,7 +22,7 @@
     home: /home/bigcgi
 
 - name: Install pip
-  shell: python3.6 -m ensurepip && python3.6 -m pip install --upgrade pip
+  shell: python3.7 -m ensurepip && python3.7 -m pip install --upgrade pip
 
 - name: Clone bigcgi
   git:
@@ -42,12 +42,12 @@
   pip:
     requirements: /home/bigcgi/bigcgi-repo/requirements.txt
     virtualenv: /home/bigcgi/bigcgi-repo/venv
-    virtualenv_command: python3.6 -m venv
+    virtualenv_command: python3.7 -m venv
 
 - name: Install bottle-cork from lib folder
   shell:
     chdir: /home/bigcgi/bigcgi-repo/vendor/bottle-cork-master
-    cmd: ../../venv/bin/python3.6 setup.py install
+    cmd: ../../venv/bin/python3.7 setup.py install
 
 #- name: Create env.sh
 #  template:
@@ -60,11 +60,12 @@
     group: bigcgi
     mode: '700'
     recurse: true
+    follow: no
     path: /home/bigcgi/bigcgi-repo
 
 - name: Create admin user
   shell:
-    cmd: venv/bin/python3.6 toolrunner.py setup_auth_db run
+    cmd: venv/bin/python3.7 toolrunner.py setup_auth_db run
     chdir: /home/bigcgi/bigcgi-repo
   environment: "{{ bigcgi_environ }}"
 
@@ -107,8 +108,8 @@
 - name: Modify Sudoers (runcgi)
   lineinfile:
     path: /usr/local/etc/sudoers
-    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.tcl'
-    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.tcl'
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.py'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.py'
 
 - name: Lock down scripts dir
   file:
@@ -133,10 +134,29 @@
     state: started
 
 #------------------------------------------
-#-- START APP
+#-- SUPERVISOR
 #------------------------------------------
-- name: Start app
+- name: Start supervisord process
   command:
     cmd: supervisord -c supervisord.conf
+    chdir: /home/bigcgi/bigcgi-repo
+    creates: /home/bigcgi/bigcgi-repo/supervisord.pid
+  environment: "{{ bigcgi_environ }}"
+
+- name: Update supervisor app
+  command:
+    cmd: supervisorctl -c supervisord.conf update all
+    chdir: /home/bigcgi/bigcgi-repo
+  environment: "{{ bigcgi_environ }}"
+
+- name: Restart supervisor app
+  command:
+    cmd: supervisorctl -c supervisord.conf restart all
+    chdir: /home/bigcgi/bigcgi-repo
+  environment: "{{ bigcgi_environ }}"
+
+- name: Start supervisor app
+  command:
+    cmd: supervisorctl -c supervisord.conf start all
     chdir: /home/bigcgi/bigcgi-repo
   environment: "{{ bigcgi_environ }}"
