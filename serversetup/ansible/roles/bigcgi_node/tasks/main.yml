@@ -1,0 +1,156 @@
+---
+#------------------------------------------
+#-- DEPENDENCIES
+#------------------------------------------
+- name: Ensure kern.racct.enable=1 in /boot/loader.conf
+  lineinfile:
+    path: /boot/loader.conf
+    regexp: '^kern.racct.enable='
+    line: kern.racct.enable=1
+  notify:
+    - Restart FreeBSD
+    
+- name: Install dependencies via pkg
+  community.general.pkgng:
+    name: git, sudo, bash, tcl86, tcllib python37, redis4, py37-supervisor
+    state: present
+
+- name: Create bigcgi user
+  user:
+    name: bigcgi
+    shell: /usr/local/bin/bash
+    home: /home/bigcgi
+
+- name: Install pip
+  shell: python3.7 -m ensurepip && python3.7 -m pip install --upgrade pip
+
+- name: Clone bigcgi
+  git:
+    repo: https://github.com/bmsauer/bigcgi.git
+    dest: /home/bigcgi/bigcgi-repo
+    version: "{{ bigcgi_ansible_branch }}"
+    force: yes
+  when: bigcgi_ansible_branch != "local"
+
+- name: copy local bigcgi to server
+  synchronize:
+    src: "{{ inventory_dir }}/../../"
+    dest: /home/bigcgi/bigcgi-repo
+  when: bigcgi_ansible_branch == "local"
+
+- name: Install bigcgi pip dependencies
+  pip:
+    requirements: /home/bigcgi/bigcgi-repo/requirements.txt
+    virtualenv: /home/bigcgi/bigcgi-repo/venv
+    virtualenv_command: python3.7 -m venv
+
+- name: Install bottle-cork from lib folder
+  shell:
+    chdir: /home/bigcgi/bigcgi-repo/vendor/bottle-cork-master
+    cmd: ../../venv/bin/python3.7 setup.py install
+
+#- name: Create env.sh
+#  template:
+#    src: env.sh.template
+#    dest: /home/bigcgi/bigcgi-repo/env.sh
+
+- name: Give bigcgi ownership of bigcgi-repo
+  file:
+    owner: bigcgi
+    group: bigcgi
+    mode: '700'
+    recurse: true
+    follow: no
+    path: /home/bigcgi/bigcgi-repo
+
+- name: Create admin user
+  shell:
+    cmd: venv/bin/python3.7 toolrunner.py setup_auth_db run
+    chdir: /home/bigcgi/bigcgi-repo
+  environment: "{{ bigcgi_environ }}"
+
+
+#------------------------------------------
+#-- CGI RUNNER
+#------------------------------------------
+- name: Create bigcgi tmp dir
+  file:
+    owner: bigcgi
+    group: bigcgi
+    mode: '700'
+    path: "{{bigcgi_tmp_file_store}}"
+    state: directory
+    
+- name: Modify Sudoers (adduser)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/adduser.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/adduser.tcl'
+
+- name: Modify Sudoers (deluser)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/deluser.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/deluser.tcl'
+
+- name: Modify Sudoers (movefile)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/movefile.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/movefile.tcl'
+
+- name: Modify Sudoers (delprog)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/delprog.tcl'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/delprog.tcl'
+
+- name: Modify Sudoers (runcgi)
+  lineinfile:
+    path: /usr/local/etc/sudoers
+    regexp: '^bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.py'
+    line: 'bigcgi ALL=(ALL:ALL) NOPASSWD: /home/bigcgi/bigcgi-repo/script/runcgi.py'
+
+- name: Lock down scripts dir
+  file:
+    owner: root
+    group: wheel
+    mode: '700'
+    recurse: true
+    path: /home/bigcgi/bigcgi-repo/script
+  
+
+#------------------------------------------
+#-- REDIS
+#------------------------------------------
+- name: Enable redis in /etc/rc.conf
+  community.general.sysrc:
+    name: redis_enable
+    value: "YES"
+
+- name: Start redis
+  service:
+    name: redis
+    state: started
+
+#------------------------------------------
+#-- SUPERVISOR
+#------------------------------------------
+- name: Start supervisord process
+  command:
+    cmd: supervisord -c supervisord.conf
+    chdir: /home/bigcgi/bigcgi-repo
+    creates: /home/bigcgi/bigcgi-repo/supervisord.pid
+  environment: "{{ bigcgi_environ }}"
+
+- name: Update supervisor app
+  command:
+    cmd: supervisorctl -c supervisord.conf update all
+    chdir: /home/bigcgi/bigcgi-repo
+  environment: "{{ bigcgi_environ }}"
+
+- name: Restart supervisor app
+  command:
+    cmd: supervisorctl -c supervisord.conf restart all
+    chdir: /home/bigcgi/bigcgi-repo
+  environment: "{{ bigcgi_environ }}"

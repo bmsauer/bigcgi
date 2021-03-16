@@ -8,3 +8,4 @@ celerybeat-schedule*
 .vagrant
 config.ini
 blog/dist
+serversetup/ansible/vault_password_file

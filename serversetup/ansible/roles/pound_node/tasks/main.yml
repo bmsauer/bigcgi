@@ -1,0 +1,22 @@
+---
+- name: Install pound via pkg
+  community.general.pkgng:
+    name: pound
+    state: present
+
+- name: Enable pound in /etc/rc.conf
+  community.general.sysrc:
+    name: pound_enable
+    value: "YES"
+
+- name: Create pound.cfg
+  template:
+    src: pound.cfg.template
+    dest: /usr/local/etc/pound.cfg
+  notify:
+    - Restart pound
+    
+- name: Start pound
+  service:
+    name: pound
+    state: started

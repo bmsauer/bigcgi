@@ -67,7 +67,7 @@ class AppSettings(object):
                                                database_name="bigcgi-logs",
                                                username=AppSettings.DATABASE_USERNAME,
                                                password=AppSettings.DATABASE_PASSWORD,
-                                               authentication_db="bigcgi-logs",
+                                               authentication_db="bigcgi-main",
                                                buffer_size=100,      
                                                buffer_periodical_flush_timing=10.0,
                                                buffer_early_flush_level=logging.CRITICAL,

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.5
+#!/usr/local/bin/python3.7
 import cgi
 import cgitb; cgitb.enable()  # for troubleshooting
 

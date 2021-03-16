@@ -1,0 +1,14 @@
+---
+bigcgi_environ:
+  BIGCGI_ENV: "{{ bigcgi_env }}"
+  BIGCGI_SECRET_KEY: "{{ bigcgi_secret_key }}"
+  BIGCGI_ADMIN_PASSWORD: "{{ bigcgi_admin_password }}"
+  BIGCGI_SMTP_USERNAME: "{{ bigcgi_smtp_username }}"
+  BIGCGI_SMTP_PASSWORD: "{{ bigcgi_smtp_password }}"
+  BIGCGI_DATABASE_USERADMIN_PASSWORD: "{{ bigcgi_database_useradmin_password }}"
+  BIGCGI_DATABASE_USERNAME: "{{ bigcgi_database_username }}"
+  BIGCGI_DATABASE_PASSWORD: "{{ bigcgi_database_password }}"
+  BIGCGI_DATABASE_URI: "{{ bigcgi_database_uri }}"
+  BIGCGI_INSTANCE_ID: "{{ bigcgi_instance_id }}"
+  BIGCGI_TOTAL_INSTANCES: "{{ bigcgi_total_instances }}"
+  BIGCGI_TMP_FILE_STORE: "{{ bigcgi_tmp_file_store }}"

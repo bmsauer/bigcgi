@@ -1,30 +1,11 @@
-TODO LIST:
-  - backup server process
-  - fleet management (jails + ansible + supervisor? bsdeploy? )
-  - tool to run code on all servers for all users
-  - BUSINESS/MARKETING
-    - value prop and homepage messaging
-    - tutorial
-    - more resources and docs
-    - performance benchmark
-  - STRETCH IDEAS
-    - "circuit breaker" feature switches based on monitoring/alerting from logs
 
 NOTES
 Similar services: iron.io ironworker, aws lambda, stdlib.com, webtask.io, google functions, 
 azure functions, ibm openwhisk, graph.cool, openFaas, fx, now, hook.io
 
-To make package of custom apache24: build port, then run "make package".  Package tar will be in ./work/pkg <-- deprecated but interesting 
-
-Things to look into: fcgiwrap / fcgi over stdin/out instead of sockets
-
-Libraries/Docs:  Wapps framework tcl
-
-MIGRATING/PROVISIONING SERVERS
-- read from mongodb: for each user:
-  - create user using adduser.tcl
-  - for each file belonging to username:
-    - run sync_file celery task
+APACHE CUSTOM PACKAGE
+Deprecated, but interesting:
+To make package of custom apache24: build port, then run "make package".  Package tar will be in ./work/pkg
 
 MONGODB
 create a backup in dump/ in pwd: mongodump -u '<userwithbackuprole>' -p 'xxxxxx'
@@ -32,16 +13,17 @@ restore a backup from dump/ in pwd:
 Dev mongo shell: mongo --username bigcgi --password bigcgi --authenticationDatabase bigcgi-main bigcgi-main
 
 OTHER TECH TIDBITS
-bottle-cork needs to be installed from github source, as my fork works with mongo3.6;  python3 setup.py install.  also removes broken pycrypto dependency
+bottle-cork has been added to a vendor/ folder.  Its customized for bigcgi.
+
+PKG ON FREEBSD
+Sometimes pkg gets corrupted by ansible.  When it does this, it cant find or install
+packages.  to fix:
+/usr/local/sbin/pkg-static update -f
 
 POTENTIAL DEMO APPS
 formspree.io clone
 blog software (search/filter on static)
 scientific method project management
-
-GETTING THE WORD OUT
-stackshare
-reddit/hn
 
 DEVLOG: 
 
@@ -82,3 +64,13 @@ This deployment taught me a few things; 1, bottle-cork is in a bad state and I n
 I need to start utilizing jails so I can build my environment from scratch each time and set up true
 staging environments.  I will work on that next, after I do branding and marketing work and before any
 new big features.
+
+-- 03-14-2021 --
+Today I'm finishing up adding Ansible to improve the time it takes to provision a bigcgi node.  This
+is super nice; I can now install mongodb, pound (replacing apache), and bigcgi in a single command.
+I plan on using ansible as a generic tool runner as well.  This is apart of my bigger plan of what I'm
+calling "architecture 2", which will be improving on the overall architecture.  In short, instead of
+using users and homedirs as the sandboxing method, which was nice for POC but not realistic, I will be
+using FreeBSD jails.  I'm also switching bigCGI to entirely async job calls; no more "app hosting".
+Adding ansible is a big step forward to have a better development environment, and eventually reduce
+risk if/when I deploy it again.
