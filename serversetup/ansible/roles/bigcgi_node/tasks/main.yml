@@ -154,9 +154,3 @@
     cmd: supervisorctl -c supervisord.conf restart all
     chdir: /home/bigcgi/bigcgi-repo
   environment: "{{ bigcgi_environ }}"
-
-- name: Start supervisor app
-  command:
-    cmd: supervisorctl -c supervisord.conf start all
-    chdir: /home/bigcgi/bigcgi-repo
-  environment: "{{ bigcgi_environ }}"
