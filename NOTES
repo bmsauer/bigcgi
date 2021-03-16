@@ -25,6 +25,35 @@ formspree.io clone
 blog software (search/filter on static)
 scientific method project management
 
+ARCHITECTURE 2
+
+Architecture 2 is a planned overhaul of the internal bigcgi structure.  Basically, it replaces user
+directories and permissions as the sandboxing method and replaces it with jails.
+
+Currently, when a user is provisioned to bigcgi, they get a user on the freebsd system and a home
+directory, where their scripts live.  A celery task populates it with files that are stored in the
+mongo database.  When a user runs a app, bigcgi goes through a bunch of python subprocess calls to
+drop the permissions to the user and run the CGI app.
+
+This was good for the POC but it has several security issues.  First, having users on the system
+directly is problematic.  Second, it requires the webapp to have sudo access to the scripts that
+add users, their home directories, and moving files around.
+
+Architecture 2 breaks this up by instead using FreeBSD jails as the sandboxes.  On user creation,
+they are provisioned a jail on a host, and their files are moved there.  This provisioning doesn't
+happen from the webapp itself, but via a celery worker.  This requires the redis queue to be
+locked down and secured.  After provisioning, files are moved in a similar manner.  When a
+user runs an app, it is dropped on the celery queue, and a worker jexec's a bigCGI script that
+lives inside the jail to usher the request to the app via the CGI standard.
+
+In addition to changing the user management piece of bigcgi, the application itself will also
+change.  There will no longer be synchronous calls, only async.  Also, it will need the concept
+of an "app run" that will store payloads, running statistics, outputs/logs, and debug information.
+This should be availabe in the UI.
+
+I'm not sure when I'll get around to this, so I wanted to write it down here so I wouldn't forget.
+ezjail / jailme
+
 DEVLOG: 
 
 -- 9-28-2017 --
