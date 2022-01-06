@@ -1,7 +1,7 @@
 boddle==0.2.5
 bottle==0.12.10
 bottle-beaker==0.1.3
-celery==5.0.5
+celery==5.2.2
 gunicorn==20.0.4
 log4mongo==1.6.2
 mongomock==3.9.0
